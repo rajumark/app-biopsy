@@ -10,6 +10,7 @@ interface DecompileManagerDialogProps {
 
 export function DecompileManagerDialog({ isOpen, onClose }: DecompileManagerDialogProps) {
   const [jadxStatus, setJadxStatus] = useState<number>(0) // 0=Pending, 1=Ready, 2=Downloading
+  const [jreStatus, setJreStatus] = useState<number>(0)
   const [errorInfo, setErrorInfo] = useState<string | null>(null)
 
   const fetchStatus = async () => {
@@ -17,6 +18,9 @@ export function DecompileManagerDialog({ isOpen, onClose }: DecompileManagerDial
       const status = await ipc.client.tools.getToolsStatus()
       if (status.jadx_status !== undefined) {
         setJadxStatus(status.jadx_status)
+      }
+      if (status.jre_status !== undefined) {
+        setJreStatus(status.jre_status)
       }
     } catch (e) {
       console.error(e)
@@ -45,6 +49,23 @@ export function DecompileManagerDialog({ isOpen, onClose }: DecompileManagerDial
       }
     } catch (e) {
       setJadxStatus(0)
+      console.error(e)
+    }
+  }
+
+  const handleDownloadJre = async () => {
+    setJreStatus(2)
+    setErrorInfo(null)
+    try {
+      const res = await ipc.client.tools.downloadJre()
+      if (res.success) {
+        await fetchStatus()
+      } else {
+        setJreStatus(0)
+        setErrorInfo(res.error || "Failed to download JRE.")
+      }
+    } catch (e) {
+      setJreStatus(0)
       console.error(e)
     }
   }
@@ -90,6 +111,32 @@ export function DecompileManagerDialog({ isOpen, onClose }: DecompileManagerDial
               
               {jadxStatus === 0 && (
                 <Button size="sm" onClick={handleDownload} className="h-7 text-xs px-3">
+                  <DownloadCloud className="w-3 h-3 mr-1" />
+                  Download
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between bg-muted/40 p-2.5 rounded border text-sm mt-3">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground/80">Java (JRE)</span>
+                {jreStatus === 1 ? (
+                  <span className="flex items-center gap-1 text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold">
+                    <CheckCircle className="size-3" /> Ready
+                  </span>
+                ) : jreStatus === 2 ? (
+                  <span className="flex items-center gap-1 text-blue-600 bg-blue-500/10 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold animate-pulse">
+                    Downloading...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold">
+                    <Clock className="size-3" /> Pending
+                  </span>
+                )}
+              </div>
+              
+              {jreStatus === 0 && (
+                <Button size="sm" onClick={handleDownloadJre} className="h-7 text-xs px-3">
                   <DownloadCloud className="w-3 h-3 mr-1" />
                   Download
                 </Button>

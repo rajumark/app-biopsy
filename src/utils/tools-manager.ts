@@ -20,6 +20,8 @@ export function getToolsInfoPath(): string {
 export interface ToolsInfo {
   jadx_path?: string;
   jadx_status?: number; // 0 = pending, 1 = ready
+  jre_path?: string;
+  jre_status?: number;
 }
 
 export function getToolsInfo(): ToolsInfo {
@@ -27,12 +29,13 @@ export function getToolsInfo(): ToolsInfo {
   if (fs.existsSync(infoPath)) {
     try {
       const data = fs.readFileSync(infoPath, "utf-8");
-      return JSON.parse(data) as ToolsInfo;
+      const parsed = JSON.parse(data) as ToolsInfo;
+      return { jadx_status: 0, jre_status: 0, ...parsed };
     } catch (e) {
       console.error("Failed to parse tools_info.json", e);
     }
   }
-  return { jadx_status: 0 };
+  return { jadx_status: 0, jre_status: 0 };
 }
 
 export function saveToolsInfo(info: ToolsInfo) {
@@ -112,3 +115,61 @@ export async function downloadAndExtractJadx(): Promise<{ success: boolean; erro
     return { success: false, error: errorMessage };
   }
 }
+
+export async function downloadAndExtractJre(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const toolsPath = getToolsPath();
+    const jreDir = path.join(toolsPath, "jre");
+    
+    if (!fs.existsSync(jreDir)) {
+      fs.mkdirSync(jreDir, { recursive: true });
+    }
+
+    const platform = os.platform();
+    const arch = os.arch();
+    let jreFileName = '';
+
+    if (platform === 'win32') {
+      jreFileName = 'jre_windows_x64.zip';
+    } else if (platform === 'darwin') {
+      if (arch === 'arm64') {
+        jreFileName = 'jre_mac_aarch64.tar.gz';
+      } else {
+        jreFileName = 'jre_mac_x64.tar.gz';
+      }
+    } else {
+      jreFileName = 'jre_linux_x64.tar.gz';
+    }
+
+    const downloadPath = path.join(toolsPath, jreFileName);
+    const downloadUrl = `https://github.com/rajumark/adbcontent/raw/main/jre/${jreFileName}`;
+
+    // 1. Download
+    await downloadFile(downloadUrl, downloadPath);
+
+    // 2. Extract
+    if (jreFileName.endsWith('.zip')) {
+      await execAsync(`unzip -o "${downloadPath}" -d "${jreDir}"`);
+    } else if (jreFileName.endsWith('.tar.gz')) {
+      await execAsync(`tar -xzf "${downloadPath}" -C "${jreDir}"`);
+    }
+
+    // Delete archive after extraction
+    if (fs.existsSync(downloadPath)) {
+      fs.unlinkSync(downloadPath);
+    }
+
+    // Update tools_info.json
+    const info = getToolsInfo();
+    info.jre_path = jreDir;
+    info.jre_status = 1;
+    saveToolsInfo(info);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error downloading/extracting JRE:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: errorMessage };
+  }
+}
+

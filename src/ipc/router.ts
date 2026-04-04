@@ -3,7 +3,7 @@ import { createNewProject, selectApkFile, getProjectList, deleteExistingProject,
 import { shell } from "./shell";
 import { theme } from "./theme";
 import { window } from "./window";
-import { getToolsStatus, downloadJadx } from "./tools";
+import { getToolsStatus, downloadJadx, downloadJre } from "./tools";
 
 export const router = {
   theme,
@@ -21,5 +21,6 @@ export const router = {
   tools: {
     getToolsStatus,
     downloadJadx,
+    downloadJre,
   }
 };
