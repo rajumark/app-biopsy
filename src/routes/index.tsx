@@ -1,19 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar"
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { useState } from "react"
+import DefaultPage from "@/components/default-page"
 
 /*
  * Update this page to modify your home page.
@@ -21,30 +13,38 @@ import {
  */
 
 function HomePage() {
+  const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
+
+  const renderContent = () => {
+    switch(currentPage.type) {
+      case "explore-files":
+        return (
+          <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+            <h1 className="text-2xl font-semibold">Explore files</h1>
+          </div>
+        )
+      case "files-category":
+        return (
+          <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+            <h1 className="text-2xl font-semibold">Files Category</h1>
+          </div>
+        )
+      default:
+        if (currentPage.title) {
+          return <DefaultPage title={currentPage.title} />
+        }
+        return (
+          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        )
+    }
+  }
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar onNavigate={setCurrentPage} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Build Your Application</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+          {renderContent()}
         </div>
       </SidebarInset>
     </SidebarProvider>

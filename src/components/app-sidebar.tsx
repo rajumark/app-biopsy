@@ -24,6 +24,20 @@ import {
 const data = {
   navMain: [
     {
+      title: "Raw source",
+      url: "#",
+      items: [
+        {
+          title: "Explore files",
+          url: "/explore-files",
+        },
+        {
+          title: "Files Category",
+          url: "/files-category",
+        },
+      ],
+    },
+    {
       title: "Getting Started",
       url: "#",
       items: [
@@ -161,7 +175,7 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ onNavigate, ...props }: React.ComponentProps<typeof Sidebar> & { onNavigate?: (page: { type: string; title: string }) => void }) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -187,9 +201,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {data.navMain.map((item, index) => (
               <Collapsible
-                className="group/collapsible"
-                defaultOpen={index === 1}
                 key={item.title}
+                defaultOpen={index === 0}
+                className="group/collapsible"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -208,7 +222,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               asChild
                               isActive={item.isActive}
                             >
-                              <a href={item.url}>{item.title}</a>
+                              <a 
+                                href={item.url} 
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  if (onNavigate) {
+                                    if (item.url === '/explore-files') {
+                                      onNavigate({ type: 'explore-files', title: '' })
+                                    } else if (item.url === '/files-category') {
+                                      onNavigate({ type: 'files-category', title: '' })
+                                    } else {
+                                      onNavigate({ type: 'default', title: item.title })
+                                    }
+                                  }
+                                }}
+                              >
+                                {item.title}
+                              </a>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}

@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SecondRouteImport } from './routes/second'
+import { Route as FilesCategoryRouteImport } from './routes/files-category'
+import { Route as ExploreFilesRouteImport } from './routes/explore-files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SecondRoute = SecondRouteImport.update({
   id: '/second',
   path: '/second',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilesCategoryRoute = FilesCategoryRouteImport.update({
+  id: '/files-category',
+  path: '/files-category',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreFilesRoute = ExploreFilesRouteImport.update({
+  id: '/explore-files',
+  path: '/explore-files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -32,30 +44,49 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/explore-files': typeof ExploreFilesRoute
+  '/files-category': typeof FilesCategoryRoute
   '/second': typeof SecondRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/explore-files': typeof ExploreFilesRoute
+  '/files-category': typeof FilesCategoryRoute
   '/second': typeof SecondRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/explore-files': typeof ExploreFilesRoute
+  '/files-category': typeof FilesCategoryRoute
   '/second': typeof SecondRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/second'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/explore-files'
+    | '/files-category'
+    | '/second'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/second'
-  id: '__root__' | '/' | '/dashboard' | '/second'
+  to: '/' | '/dashboard' | '/explore-files' | '/files-category' | '/second'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/explore-files'
+    | '/files-category'
+    | '/second'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  ExploreFilesRoute: typeof ExploreFilesRoute
+  FilesCategoryRoute: typeof FilesCategoryRoute
   SecondRoute: typeof SecondRoute
 }
 
@@ -66,6 +97,20 @@ declare module '@tanstack/react-router' {
       path: '/second'
       fullPath: '/second'
       preLoaderRoute: typeof SecondRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/files-category': {
+      id: '/files-category'
+      path: '/files-category'
+      fullPath: '/files-category'
+      preLoaderRoute: typeof FilesCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore-files': {
+      id: '/explore-files'
+      path: '/explore-files'
+      fullPath: '/explore-files'
+      preLoaderRoute: typeof ExploreFilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -88,6 +133,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  ExploreFilesRoute: ExploreFilesRoute,
+  FilesCategoryRoute: FilesCategoryRoute,
   SecondRoute: SecondRoute,
 }
 export const routeTree = rootRouteImport
