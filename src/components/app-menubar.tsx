@@ -22,14 +22,9 @@ export function AppMenubar() {
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
           <MenubarGroup>
-            <MenubarSub>
-              <MenubarSubTrigger>New Project</MenubarSubTrigger>
-              <MenubarSubContent>
-                <MenubarItem>Web Project</MenubarItem>
-                <MenubarItem>App Project</MenubarItem>
-                <MenubarItem>Game Project</MenubarItem>
-              </MenubarSubContent>
-            </MenubarSub>
+            <MenubarItem>
+              New Project <MenubarShortcut>⌘⇧N</MenubarShortcut>
+            </MenubarItem>
             <MenubarItem>
               New Tab <MenubarShortcut>⌘T</MenubarShortcut>
             </MenubarItem>
