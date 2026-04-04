@@ -1,5 +1,5 @@
 import * as React from "react"
-import { X, Search, Trash2 } from "lucide-react"
+import { X, Search, Trash2, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ipc } from "@/ipc/manager"
@@ -54,6 +54,9 @@ export function ProjectListDialog({
     if (isOpen) {
       fetchProjects()
       setSearch("")
+    } else {
+      setProjects([])
+      setSearch("")
     }
   }, [isOpen, fetchProjects])
 
@@ -90,6 +93,10 @@ export function ProjectListDialog({
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h2 className="text-md font-semibold text-muted-foreground">Project List</h2>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchProjects} disabled={isLoading} title="Refresh List" className="gap-2">
+              <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="sr-only sm:not-sr-only">Refresh</span>
+            </Button>
             <Button size="sm" onClick={onCreateProjectClick}>
               Create Project
             </Button>

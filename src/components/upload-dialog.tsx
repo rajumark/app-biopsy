@@ -17,6 +17,15 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [isCreating, setIsCreating] = React.useState(false)
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFile(null)
+      setProjectName("")
+      setIsCreating(false)
+      setIsDragOver(false)
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const openFileDialog = async () => {
