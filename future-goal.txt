@@ -1,0 +1,3 @@
+user will upload apk then we will do analysis of apk and we will show reports.
+really good ui report we will show.
+we will use avaiable ready made tool so no need to built from scracth.
