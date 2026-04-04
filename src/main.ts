@@ -9,6 +9,7 @@ import { UpdateSourceType, updateElectronApp } from "update-electron-app";
 import { ipcContext } from "@/ipc/context";
 import { IPC_CHANNELS, inDevelopment } from "./constants";
 import { getBasePath } from "./utils/path";
+import { initializeAppDirectories } from "./utils/app-data";
 
 function createWindow() {
   const basePath = getBasePath();
@@ -70,6 +71,9 @@ async function setupORPC() {
 
 app.whenReady().then(async () => {
   try {
+    // Initialize app directories first
+    initializeAppDirectories();
+    
     createWindow();
     await installExtensions();
     checkForUpdates();
