@@ -173,3 +173,64 @@ export async function downloadAndExtractJre(): Promise<{ success: boolean; error
   }
 }
 
+export async function decompileApk(
+  projectId: string
+): Promise<{ success: boolean; logs?: string; error?: string }> {
+  try {
+    const info = getToolsInfo();
+
+    if (!info.jadx_path || info.jadx_status !== 1) {
+      return { success: false, error: "JADX is not installed. Please download it from Decompile Manager." };
+    }
+    if (!info.jre_path || info.jre_status !== 1) {
+      return { success: false, error: "JRE is not installed. Please download it from Decompile Manager." };
+    }
+
+    const homeDir = os.homedir();
+    const projectDir = path.join(homeDir, ".config", "Appbiopsy", "projects", projectId);
+    const apkPath = path.join(projectDir, "source_files", "local_app.apk");
+    const outputDir = path.join(projectDir, "source_files", "decompiled");
+
+    if (!fs.existsSync(apkPath)) {
+      return { success: false, error: "APK file not found: " + apkPath };
+    }
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Resolve JRE home (one level inside jre dir)
+    let jreHome = info.jre_path;
+    const jreDirEntries = fs.readdirSync(jreHome);
+    if (jreDirEntries.length > 0) {
+      const firstEntry = path.join(jreHome, jreDirEntries[0]);
+      if (fs.statSync(firstEntry).isDirectory()) {
+        jreHome = firstEntry;
+      }
+    }
+
+    const jadxBin = path.join(info.jadx_path, "bin", "jadx");
+    const javaBin = path.join(jreHome, "bin", "java");
+
+    // Ensure executables are runnable
+    if (fs.existsSync(jadxBin)) {
+      fs.chmodSync(jadxBin, 0o755);
+    }
+    if (fs.existsSync(javaBin)) {
+      fs.chmodSync(javaBin, 0o755);
+    }
+
+    const { stdout, stderr } = await execAsync(
+      `"${jadxBin}" -d "${outputDir}" "${apkPath}"`,
+      { env: { ...process.env, JAVA_HOME: jreHome } }
+    );
+
+    const logs = [stdout, stderr].filter(Boolean).join("\n").trim();
+    return { success: true, logs };
+  } catch (error: any) {
+    console.error("Error decompiling APK:", error);
+    const logs = [error?.stdout, error?.stderr].filter(Boolean).join("\n").trim();
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: errorMessage, logs };
+  }
+}

@@ -1,17 +1,106 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SimpleSidebar } from "@/components/simple-sidebar"
 import { AppMenubar } from "@/components/app-menubar"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import DefaultPage from "@/components/default-page"
 import { UploadDialog } from "@/components/upload-dialog"
 import { ProjectListDialog, ProjectInfo } from "@/components/project-list-dialog"
 import { DecompileManagerDialog } from "@/components/decompile-manager-dialog"
+import { Button } from "@/components/ui/button"
 import { ipc } from "@/ipc/manager"
 
-/*
- * Update this page to modify your home page.
- * You can delete this file component to start from a blank page.
- */
+// ─── Explore Files / Decompile Panel ────────────────────────────────────────
+
+type DecompileState = "idle" | "running" | "done" | "error"
+
+function ExploreFilesPanel({ activeProject }: { activeProject: ProjectInfo | null }) {
+  const [state, setState] = useState<DecompileState>("idle")
+  const [logs, setLogs] = useState<string>("")
+  const [error, setError] = useState<string | null>(null)
+  const logsRef = useRef<HTMLPreElement>(null)
+
+  useEffect(() => {
+    if (logsRef.current) {
+      logsRef.current.scrollTop = logsRef.current.scrollHeight
+    }
+  }, [logs])
+
+  const handleDecompile = async () => {
+    if (!activeProject) return
+    setState("running")
+    setLogs("")
+    setError(null)
+    try {
+      const res = await ipc.client.tools.decompileApk({ projectId: activeProject.project_id })
+      if (res.success) {
+        setState("done")
+        setLogs(res.logs || "Done.")
+      } else {
+        setState("error")
+        setError(res.error || "Unknown error")
+        setLogs(res.logs || "")
+      }
+    } catch (e: any) {
+      setState("error")
+      setError(e?.message || "Unexpected error")
+    }
+  }
+
+  if (!activeProject) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+        <p className="text-muted-foreground text-sm">No project selected.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4 p-2 max-w-2xl">
+      <h1 className="text-xl font-semibold">Explore Files</h1>
+
+      {/* APK info card */}
+      <div className="border rounded-lg p-3 bg-muted/30 text-sm flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">APK</span>
+          <span className="font-mono text-foreground/90">{activeProject.local_apk_name || "local_app.apk"}</span>
+          <span className="text-xs text-muted-foreground">{activeProject.project_name}</span>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleDecompile}
+          disabled={state === "running"}
+          variant={state === "done" ? "outline" : "default"}
+          className="shrink-0"
+        >
+          {state === "running" ? "Decompiling…" : state === "done" ? "Decompile again" : "Decompile"}
+        </Button>
+      </div>
+
+      {/* Status badge */}
+      {state !== "idle" && (
+        <div className={`text-xs font-semibold px-2 py-1 rounded w-fit ${
+          state === "running" ? "bg-blue-500/10 text-blue-600" :
+          state === "done"    ? "bg-green-500/10 text-green-600" :
+                                "bg-red-500/10 text-red-600"
+        }`}>
+          {state === "running" ? "Decompiling…" : state === "done" ? "✓ Decompiled successfully" : `✗ ${error}`}
+        </div>
+      )}
+
+      {/* Log output */}
+      {logs && (
+        <pre
+          ref={logsRef}
+          className="rounded-lg border bg-muted/50 p-3 text-xs font-mono whitespace-pre-wrap break-words max-h-60 overflow-y-auto text-foreground/80"
+        >
+          {logs}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+// ─── Home Page ───────────────────────────────────────────────────────────────
 
 function HomePage() {
   const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
@@ -59,11 +148,7 @@ function HomePage() {
   const renderContent = () => {
     switch(currentPage.type) {
       case "explore-files":
-        return (
-          <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
-            <h1 className="text-2xl font-semibold">Explore files</h1>
-          </div>
-        )
+        return <ExploreFilesPanel activeProject={activeProject} />
       case "files-category":
         return (
           <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
