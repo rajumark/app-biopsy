@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import DefaultPage from "@/components/default-page"
 import { UploadDialog } from "@/components/upload-dialog"
 import { ProjectListDialog, ProjectInfo } from "@/components/project-list-dialog"
+import { DecompileManagerDialog } from "@/components/decompile-manager-dialog"
 import { ipc } from "@/ipc/manager"
 
 /*
@@ -16,6 +17,7 @@ function HomePage() {
   const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isProjectListOpen, setIsProjectListOpen] = useState(false)
+  const [isDecompileManagerOpen, setIsDecompileManagerOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<ProjectInfo | null>(null)
   const [isProjectListMandatory, setIsProjectListMandatory] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
@@ -93,6 +95,7 @@ function HomePage() {
             currentPage={currentPage} 
             activeProject={activeProject} 
             onShowProjectList={() => setIsProjectListOpen(true)}
+            onDecompileClick={() => setIsDecompileManagerOpen(true)}
           />
         </div>
         <div className="flex-1 pt-8">
@@ -122,6 +125,10 @@ function HomePage() {
           activeProjectId={activeProject?.project_id}
         />
       )}
+      <DecompileManagerDialog 
+        isOpen={isDecompileManagerOpen}
+        onClose={() => setIsDecompileManagerOpen(false)}
+      />
     </>
   );
 }

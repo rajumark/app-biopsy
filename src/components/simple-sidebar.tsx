@@ -22,11 +22,12 @@ const data = {
   ],
 }
 
-export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowProjectList }: { 
+export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowProjectList, onDecompileClick }: { 
   onNavigate?: (page: { type: string; title: string }) => void; 
   currentPage?: { type: string; title: string };
   activeProject?: any;
   onShowProjectList?: () => void;
+  onDecompileClick?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -40,23 +41,34 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
   return (
     <div className="flex h-full w-full flex-col bg-card px-[6px]">
       <div 
-        className="flex h-16 shrink-0 items-center justify-between px-2 mx-1 mt-2 mb-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+        className="flex h-auto py-2.5 shrink-0 items-center justify-between px-2 mx-1 mt-2 mb-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
         onClick={onShowProjectList}
         title="Switch Project"
       >
-        <div className="flex items-center gap-2 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-hidden flex-1">
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          <div className="flex flex-col gap-0.5 leading-none px-1 overflow-hidden">
+          <div className="flex flex-col gap-0.5 leading-none px-1 overflow-hidden flex-1">
             {activeProject ? (
               <>
-                <span className="font-medium truncate max-w-[110px]" title={activeProject.project_name}>
+                <span className="font-medium truncate" title={activeProject.project_name}>
                   {activeProject.project_name || "Unnamed"}
                 </span>
                 <span className="text-[10px] text-muted-foreground mt-0.5 truncate">
                   {new Date(activeProject.projection_creation_time).toLocaleDateString()}
                 </span>
+                <div className="flex items-center gap-1.5 mt-1.5" onClick={(e) => e.stopPropagation()}>
+                  <span className="px-1.5 py-0.5 rounded-md bg-muted/60 text-[9px] font-medium uppercase border">
+                    {activeProject.jadx_decompile_status === 0 ? "Pending" : "Unknown"}
+                  </span>
+                  <button 
+                    onClick={onDecompileClick}
+                    className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[9px] font-semibold uppercase hover:bg-primary/20 transition-colors border border-primary/20"
+                  >
+                    Decompile
+                  </button>
+                </div>
               </>
             ) : (
               <span className="font-medium"></span>
