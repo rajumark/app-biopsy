@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppSidebar } from "@/components/app-sidebar"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { SimpleSidebar } from "@/components/simple-sidebar"
+import { AppMenubar } from "@/components/app-menubar"
 import { useState } from "react"
 import DefaultPage from "@/components/default-page"
 
@@ -40,14 +37,21 @@ function HomePage() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar onNavigate={setCurrentPage} currentPage={currentPage} />
-      <SidebarInset>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-12">
-          {renderContent()}
+    <>
+      <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background border-b">
+        <AppMenubar />
+      </div>
+      <div className="flex h-screen">
+        <div className="w-64 border-r bg-muted/50 pt-8">
+          <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        <div className="flex-1 pt-32">
+          <div className="flex flex-1 flex-col gap-4 p-4">
+            {renderContent()}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
