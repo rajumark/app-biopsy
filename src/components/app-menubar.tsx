@@ -15,7 +15,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar"
 
-export function AppMenubar({ onNewProject, onProjectList }: { onNewProject?: () => void; onProjectList?: () => void }) {
+export function AppMenubar({ onNewProject, onProjectList, onToolsCheck }: { onNewProject?: () => void; onProjectList?: () => void; onToolsCheck?: () => void }) {
   return (
     <Menubar className="w-full border-none shadow-none rounded-none">
       <MenubarMenu>
@@ -27,6 +27,9 @@ export function AppMenubar({ onNewProject, onProjectList }: { onNewProject?: () 
             </MenubarItem>
             <MenubarItem onClick={onProjectList}>
               Project List
+            </MenubarItem>
+            <MenubarItem onClick={onToolsCheck}>
+              Decompile Manager
             </MenubarItem>
             <MenubarItem>
               New Tab <MenubarShortcut>⌘T</MenubarShortcut>

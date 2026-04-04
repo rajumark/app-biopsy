@@ -86,6 +86,7 @@ function HomePage() {
         <AppMenubar 
           onNewProject={() => setIsUploadDialogOpen(true)}
           onProjectList={() => setIsProjectListOpen(true)}
+          onToolsCheck={() => setIsDecompileManagerOpen(true)}
         />
       </div>
       <div className="flex h-screen">
