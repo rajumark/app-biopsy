@@ -4,6 +4,7 @@ import { AppMenubar } from "@/components/app-menubar"
 import { useState } from "react"
 import DefaultPage from "@/components/default-page"
 import { UploadDialog } from "@/components/upload-dialog"
+import { ProjectListDialog } from "@/components/project-list-dialog"
 
 /*
  * Update this page to modify your home page.
@@ -13,6 +14,7 @@ import { UploadDialog } from "@/components/upload-dialog"
 function HomePage() {
   const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
+  const [isProjectListOpen, setIsProjectListOpen] = useState(false)
 
   const renderContent = () => {
     switch(currentPage.type) {
@@ -41,7 +43,10 @@ function HomePage() {
   return (
     <>
       <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background border-b shadow-xs">
-        <AppMenubar onNewProject={() => setIsUploadDialogOpen(true)} />
+        <AppMenubar 
+          onNewProject={() => setIsUploadDialogOpen(true)}
+          onProjectList={() => setIsProjectListOpen(true)}
+        />
       </div>
       <div className="flex h-screen">
         <div className="w-[200px] border-r bg-muted/50 pt-8">
@@ -56,6 +61,10 @@ function HomePage() {
       <UploadDialog 
         isOpen={isUploadDialogOpen} 
         onClose={() => setIsUploadDialogOpen(false)} 
+      />
+      <ProjectListDialog
+        isOpen={isProjectListOpen}
+        onClose={() => setIsProjectListOpen(false)}
       />
     </>
   );

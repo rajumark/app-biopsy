@@ -1,6 +1,7 @@
 import * as React from "react"
 import { X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 import { ipc } from "@/ipc/manager"
 
@@ -12,6 +13,7 @@ interface UploadDialogProps {
 
 export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialogProps) {
   const [selectedFile, setSelectedFile] = React.useState<{ name: string; path: string } | null>(null)
+  const [projectName, setProjectName] = React.useState("")
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [isCreating, setIsCreating] = React.useState(false)
 
@@ -70,16 +72,18 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
   }
 
   const handleCreateProject = async () => {
-    if (!selectedFile) return
+    if (!selectedFile || !projectName.trim()) return
 
     setIsCreating(true)
     try {
       const result = await ipc.client.project.createNewProject({
-        apkPath: selectedFile.path
+        apkPath: selectedFile.path,
+        projectName: projectName.trim()
       })
 
       if (result.success && result.projectId) {
         alert(`Project created successfully! ID: ${result.projectId}`)
+        setProjectName("")
         onProjectCreated?.(result.projectId)
         onClose()
       } else {
@@ -152,11 +156,20 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Project Name</label>
+                <Input 
+                  placeholder="Enter project name" 
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                />
+              </div>
+
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={resetSelection} disabled={isCreating}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleCreateProject} disabled={isCreating}>
+                <Button size="sm" onClick={handleCreateProject} disabled={isCreating || !projectName.trim()}>
                   {isCreating ? "Creating..." : "Create project"}
                 </Button>
               </div>

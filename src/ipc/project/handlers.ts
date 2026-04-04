@@ -1,13 +1,24 @@
 import { os } from "@orpc/server";
 import { dialog } from "electron";
-import { createProject } from "@/utils/project-manager";
-import { createProjectInputSchema } from "./schemas";
+import { createProject, getProjects, deleteProject } from "@/utils/project-manager";
+import { createProjectInputSchema, deleteProjectInputSchema } from "./schemas";
 
 export const createNewProject = os
   .input(createProjectInputSchema)
   .handler(async ({ input }) => {
-    const { apkPath } = input;
-    return createProject(apkPath);
+    const { apkPath, projectName } = input;
+    return createProject(apkPath, projectName);
+  });
+
+export const getProjectList = os.handler(async () => {
+  return getProjects();
+});
+
+export const deleteExistingProject = os
+  .input(deleteProjectInputSchema)
+  .handler(async ({ input }) => {
+    const { projectId } = input;
+    return deleteProject(projectId);
   });
 
 export const selectApkFile = os.handler(async () => {
