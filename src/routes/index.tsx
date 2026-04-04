@@ -3,6 +3,7 @@ import { SimpleSidebar } from "@/components/simple-sidebar"
 import { AppMenubar } from "@/components/app-menubar"
 import { useState } from "react"
 import DefaultPage from "@/components/default-page"
+import { UploadDialog } from "@/components/upload-dialog"
 
 /*
  * Update this page to modify your home page.
@@ -11,6 +12,7 @@ import DefaultPage from "@/components/default-page"
 
 function HomePage() {
   const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
   const renderContent = () => {
     switch(currentPage.type) {
@@ -39,7 +41,7 @@ function HomePage() {
   return (
     <>
       <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background border-b shadow-xs">
-        <AppMenubar />
+        <AppMenubar onNewProject={() => setIsUploadDialogOpen(true)} />
       </div>
       <div className="flex h-screen">
         <div className="w-[200px] border-r bg-muted/50 pt-8">
@@ -51,6 +53,10 @@ function HomePage() {
           </div>
         </div>
       </div>
+      <UploadDialog 
+        isOpen={isUploadDialogOpen} 
+        onClose={() => setIsUploadDialogOpen(false)} 
+      />
     </>
   );
 }

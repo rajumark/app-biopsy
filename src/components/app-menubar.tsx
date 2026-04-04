@@ -15,14 +15,14 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar"
 
-export function AppMenubar() {
+export function AppMenubar({ onNewProject }: { onNewProject?: () => void }) {
   return (
     <Menubar className="w-full border-none shadow-none rounded-none">
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
           <MenubarGroup>
-            <MenubarItem>
+            <MenubarItem onClick={onNewProject}>
               New Project <MenubarShortcut>⌘⇧N</MenubarShortcut>
             </MenubarItem>
             <MenubarItem>
