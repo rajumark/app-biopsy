@@ -75,6 +75,7 @@
     "electron": "^41.0.3",
     "electron-devtools-installer": "^4.0.0",
     "electron-playwright-helpers": "^2.1.0",
+    "electron-winstaller": "^5.4.0",
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "tailwindcss": "^4.2.2",
