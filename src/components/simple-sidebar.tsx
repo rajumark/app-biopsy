@@ -1,11 +1,12 @@
 import { SearchForm } from "@/components/search-form"
 import { GalleryVerticalEnd } from "lucide-react"
+import { useState } from "react"
 
 // This is sample data.
 const data = {
   navMain: [
     {
-      title: "Raw source",
+      title: "Navigation",
       url: "#",
       items: [
         {
@@ -18,145 +19,19 @@ const data = {
         },
       ],
     },
-    {
-      title: "Getting Started",
-      url: "#",
-      items: [
-        {
-          title: "Installation",
-          url: "#",
-        },
-        {
-          title: "Project Structure",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Build Your Application",
-      url: "#",
-      items: [
-        {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "API Reference",
-      url: "#",
-      items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Architecture",
-      url: "#",
-      items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Community",
-      url: "#",
-      items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
-        },
-      ],
-    },
   ],
 }
 
 export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page: { type: string; title: string }) => void; currentPage?: { type: string; title: string } }) {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const filteredNavMain = data.navMain.map((section) => ({
+    ...section,
+    items: section.items.filter((item) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+  })).filter((section) => section.items.length > 0)
+
   return (
     <div className="flex h-full w-full flex-col bg-card">
       <div className="flex h-16 shrink-0 items-center gap-2 px-4">
@@ -168,16 +43,12 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
           <span className="">v1.0.0</span>
         </div>
       </div>
-      <SearchForm />
+      <SearchForm value={searchQuery} onQueryChange={setSearchQuery} />
       <div className="flex-1 overflow-auto px-2 py-2">
         <nav className="space-y-1">
-          {data.navMain.map((section) => (
-            <div key={section.title}>
-              <div className="px-2 py-2 text-sm font-semibold text-muted-foreground">
-                {section.title}
-              </div>
-              <div className="space-y-1">
-                {section.items.map((item) => (
+          {filteredNavMain.map((section) => (
+            <div key={section.title} className="space-y-1">
+              {section.items.map((item) => (
                   <button
                     key={item.title}
                     onClick={() => {
@@ -192,18 +63,16 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
                       }
                     }}
                     className={`w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors ${
-                      (item.isActive || (currentPage && 
-                        ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
-                           (item.url === '/files-category' && currentPage.type === 'files-category') ||
-                           (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title)))
-                      ? 'bg-accent text-accent-foreground' : ''
-                      )
+                      currentPage && (
+                        (item.url === '/explore-files' && currentPage.type === 'explore-files') ||
+                        (item.url === '/files-category' && currentPage.type === 'files-category') ||
+                        (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title)
+                      ) ? 'bg-accent text-accent-foreground' : ''
                     }`}
                   >
                     {item.title}
                   </button>
                 ))}
-              </div>
             </div>
           ))}
         </nav>
