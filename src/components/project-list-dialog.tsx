@@ -134,7 +134,7 @@ export function ProjectListDialog({
             filteredProjects.map((project) => (
               <div 
                 key={project.project_id} 
-                className={`flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors ${
+                className={`group flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors ${
                   activeProjectId === project.project_id ? "border-primary bg-primary/5" : ""
                 }`}
               >
@@ -157,7 +157,7 @@ export function ProjectListDialog({
                   variant="ghost" 
                   size="icon" 
                   onClick={() => handleDelete(project.project_id, project.project_name)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-100/10 shrink-0"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-100/10 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
                   title="Delete Project"
                 >
                   <Trash2 className="h-4 w-4" />

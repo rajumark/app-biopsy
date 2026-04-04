@@ -88,7 +88,12 @@ function HomePage() {
       </div>
       <div className="flex h-screen">
         <div className="w-[200px] border-r bg-muted/50 pt-8">
-          <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} activeProject={activeProject} />
+          <SimpleSidebar 
+            onNavigate={setCurrentPage} 
+            currentPage={currentPage} 
+            activeProject={activeProject} 
+            onShowProjectList={() => setIsProjectListOpen(true)}
+          />
         </div>
         <div className="flex-1 pt-8">
           <div className="flex flex-1 flex-col gap-4 p-4">

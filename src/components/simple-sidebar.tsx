@@ -1,5 +1,5 @@
 import { SearchForm } from "@/components/search-form"
-import { GalleryVerticalEnd } from "lucide-react"
+import { GalleryVerticalEnd, ChevronDown } from "lucide-react"
 import { useState } from "react"
 
 // This is sample data.
@@ -22,10 +22,11 @@ const data = {
   ],
 }
 
-export function SimpleSidebar({ onNavigate, currentPage, activeProject }: { 
+export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowProjectList }: { 
   onNavigate?: (page: { type: string; title: string }) => void; 
   currentPage?: { type: string; title: string };
   activeProject?: any;
+  onShowProjectList?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -38,24 +39,31 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject }: {
 
   return (
     <div className="flex h-full w-full flex-col bg-card px-[6px]">
-      <div className="flex h-16 shrink-0 items-center gap-2 px-0">
-        <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <GalleryVerticalEnd className="size-4" />
+      <div 
+        className="flex h-16 shrink-0 items-center justify-between px-2 mx-1 mt-2 mb-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+        onClick={onShowProjectList}
+        title="Switch Project"
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
+            <GalleryVerticalEnd className="size-4" />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none px-1 overflow-hidden">
+            {activeProject ? (
+              <>
+                <span className="font-medium truncate max-w-[110px]" title={activeProject.project_name}>
+                  {activeProject.project_name || "Unnamed"}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                  {new Date(activeProject.projection_creation_time).toLocaleDateString()}
+                </span>
+              </>
+            ) : (
+              <span className="font-medium"></span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col gap-0.5 leading-none px-1">
-          {activeProject ? (
-            <>
-              <span className="font-medium truncate max-w-[120px]" title={activeProject.project_name}>
-                {activeProject.project_name || "Unnamed"}
-              </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                {new Date(activeProject.projection_creation_time).toLocaleDateString()}
-              </span>
-            </>
-          ) : (
-            <span className="font-medium"></span>
-          )}
-        </div>
+        <ChevronDown className="size-4 text-muted-foreground shrink-0" />
       </div>
       <SearchForm value={searchQuery} onQueryChange={setSearchQuery} />
       <div className="flex-1 overflow-auto py-2">
