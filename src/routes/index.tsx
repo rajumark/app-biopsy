@@ -42,7 +42,7 @@ function HomePage() {
         <AppMenubar />
       </div>
       <div className="flex h-screen">
-        <div className="w-64 border-r bg-muted/50 pt-8">
+        <div className="w-[200px] border-r bg-muted/50 pt-8">
           <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} />
         </div>
         <div className="flex-1 pt-8">
