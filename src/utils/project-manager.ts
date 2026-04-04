@@ -43,7 +43,8 @@ export function createProject(
 
     // Copy APK file to source_files folder
     const apkFileName = path.basename(apkSourcePath);
-    const apkDestinationPath = path.join(sourceFilesPath, apkFileName);
+    const localApkName = "local_app.apk";
+    const apkDestinationPath = path.join(sourceFilesPath, localApkName);
     
     copyFileSync(apkSourcePath, apkDestinationPath);
 
@@ -51,11 +52,13 @@ export function createProject(
     const projectInfoPath = path.join(projectFolderPath, "project_info.json");
     const projectInfo = {
       projection_creation_time: new Date().toISOString(),
-      apk_name: apkFileName,
-      apk_path: apkDestinationPath,
       project_id: projectId,
       jadx_decompile_status: 0,
-      project_name: projectName
+      project_name: projectName,
+      source_apk_name: apkFileName,
+      local_apk_name: localApkName,
+      source_apk_path: apkSourcePath,
+      local_apk_path: apkDestinationPath
     };
     writeFileSync(projectInfoPath, JSON.stringify(projectInfo, null, 2));
 
@@ -75,11 +78,13 @@ export function createProject(
 
 export interface ProjectInfo {
   projection_creation_time: string;
-  apk_name: string;
-  apk_path: string;
   project_id: string;
   jadx_decompile_status: number;
   project_name: string;
+  source_apk_name?: string;
+  local_apk_name?: string;
+  source_apk_path?: string;
+  local_apk_path?: string;
 }
 
 export function getProjects(): ProjectInfo[] {

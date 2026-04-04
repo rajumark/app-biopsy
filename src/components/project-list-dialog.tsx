@@ -6,11 +6,13 @@ import { ipc } from "@/ipc/manager"
 
 interface ProjectInfo {
   projection_creation_time: string;
-  apk_name: string;
-  apk_path: string;
   project_id: string;
   jadx_decompile_status: number;
   project_name: string;
+  source_apk_name?: string;
+  local_apk_name?: string;
+  source_apk_path?: string;
+  local_apk_path?: string;
 }
 
 interface ProjectListDialogProps {
@@ -48,7 +50,7 @@ export function ProjectListDialog({ isOpen, onClose }: ProjectListDialogProps) {
 
   const filteredProjects = projects.filter(p => 
     p.project_name?.toLowerCase().includes(search.toLowerCase()) || 
-    p.apk_name?.toLowerCase().includes(search.toLowerCase())
+    (p.source_apk_name || (p as any).apk_name)?.toLowerCase().includes(search.toLowerCase())
   )
 
   const handleDelete = async (projectId: string, projectName: string) => {
@@ -110,7 +112,7 @@ export function ProjectListDialog({ isOpen, onClose }: ProjectListDialogProps) {
                     {project.project_name || "Unnamed Project"}
                   </h3>
                   <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                    <p className="truncate" title={project.apk_name}>APK: {project.apk_name}</p>
+                    <p className="truncate" title={project.source_apk_name || (project as any).apk_name}>APK: {project.source_apk_name || (project as any).apk_name}</p>
                     <p>Created: {new Date(project.projection_creation_time).toLocaleString()}</p>
                   </div>
                 </div>
