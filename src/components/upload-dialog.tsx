@@ -9,23 +9,36 @@ interface UploadDialogProps {
 
 export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const [selectedFile, setSelectedFile] = React.useState<{ name: string; path: string } | null>(null)
+  const [isDragOver, setIsDragOver] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   if (!isOpen) return null
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
+    if (file && file.name.toLowerCase().endsWith('.apk')) {
       setSelectedFile({
         name: file.name,
-        // In Electron, the real path is available on the file object
         path: (file as any).path || file.name
       })
+    } else if (file) {
+      alert("Please select a valid .apk file")
     }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragOver(false)
     const file = e.dataTransfer.files?.[0]
     if (file && file.name.toLowerCase().endsWith('.apk')) {
       setSelectedFile({
@@ -69,10 +82,15 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
 
           {!selectedFile ? (
             <div 
-              onDragOver={(e) => e.preventDefault()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-muted/10 px-4 py-8 text-center cursor-pointer transition-colors hover:bg-muted/20"
+              className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 text-center cursor-pointer transition-colors ${
+                isDragOver 
+                ? "border-primary bg-primary/10" 
+                : "border-muted-foreground/20 bg-muted/10 hover:bg-muted/20"
+              }`}
             >
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                 <Upload className="size-5 text-primary" />
