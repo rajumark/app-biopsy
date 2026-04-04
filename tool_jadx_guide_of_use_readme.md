@@ -9,7 +9,7 @@ On Windows: use jadx.bat
 
 These are the CLI executables.
 
-2. Example command-line usage
+2. Example command-line usage 
 # Decompile an APK
 jadx -d output_dir app.apk
 
