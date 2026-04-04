@@ -22,7 +22,11 @@ const data = {
   ],
 }
 
-export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page: { type: string; title: string }) => void; currentPage?: { type: string; title: string } }) {
+export function SimpleSidebar({ onNavigate, currentPage, activeProject }: { 
+  onNavigate?: (page: { type: string; title: string }) => void; 
+  currentPage?: { type: string; title: string };
+  activeProject?: any;
+}) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredNavMain = data.navMain.map((section) => ({
@@ -38,9 +42,19 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
           <GalleryVerticalEnd className="size-4" />
         </div>
-        <div className="flex flex-col gap-0.5 leading-none">
-          <span className="font-medium">Documentation</span>
-          <span className="">v1.0.0</span>
+        <div className="flex flex-col gap-0.5 leading-none px-1">
+          {activeProject ? (
+            <>
+              <span className="font-medium truncate max-w-[120px]" title={activeProject.project_name}>
+                {activeProject.project_name || "Unnamed"}
+              </span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">
+                {new Date(activeProject.projection_creation_time).toLocaleDateString()}
+              </span>
+            </>
+          ) : (
+            <span className="font-medium"></span>
+          )}
         </div>
       </div>
       <SearchForm value={searchQuery} onQueryChange={setSearchQuery} />

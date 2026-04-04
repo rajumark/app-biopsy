@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ipc } from "@/ipc/manager"
 
-interface ProjectInfo {
+export interface ProjectInfo {
   projection_creation_time: string;
   project_id: string;
   jadx_decompile_status: number;
@@ -18,9 +18,20 @@ interface ProjectInfo {
 interface ProjectListDialogProps {
   isOpen: boolean
   onClose: () => void
+  isMandatory?: boolean
+  onSelectProject?: (project: ProjectInfo) => void
+  onCreateProjectClick?: () => void
+  activeProjectId?: string | null
 }
 
-export function ProjectListDialog({ isOpen, onClose }: ProjectListDialogProps) {
+export function ProjectListDialog({ 
+  isOpen, 
+  onClose, 
+  isMandatory, 
+  onSelectProject, 
+  onCreateProjectClick,
+  activeProjectId 
+}: ProjectListDialogProps) {
   const [projects, setProjects] = React.useState<ProjectInfo[]>([])
   const [search, setSearch] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
@@ -73,17 +84,25 @@ export function ProjectListDialog({ isOpen, onClose }: ProjectListDialogProps) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div 
         className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity" 
-        onClick={onClose}
+        onClick={() => !isMandatory && onClose()}
       />
       <div className="relative flex flex-col w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl border bg-card shadow-lg animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h2 className="text-md font-semibold text-muted-foreground">Project List</h2>
-          <button 
-            onClick={onClose}
-            className="rounded-full p-1.5 hover:bg-muted transition-colors"
-          >
-            <X className="size-4 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={onCreateProjectClick}>
+              Create Project
+            </Button>
+            {!isMandatory && (
+              <button 
+                onClick={onClose}
+                className="rounded-full p-1.5 hover:bg-muted transition-colors"
+                title="Close"
+              >
+                <X className="size-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="p-4 border-b">
@@ -106,10 +125,21 @@ export function ProjectListDialog({ isOpen, onClose }: ProjectListDialogProps) {
             <div className="text-center text-sm text-muted-foreground py-8">No projects found.</div>
           ) : (
             filteredProjects.map((project) => (
-              <div key={project.project_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/10 transition-colors">
-                <div className="min-w-0 pr-4">
+              <div 
+                key={project.project_id} 
+                className={`flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors ${
+                  activeProjectId === project.project_id ? "border-primary bg-primary/5" : ""
+                }`}
+              >
+                <div 
+                  className="min-w-0 pr-4 flex-1 cursor-pointer"
+                  onClick={() => onSelectProject?.(project)}
+                >
                   <h3 className="font-medium text-sm truncate" title={project.project_name}>
                     {project.project_name || "Unnamed Project"}
+                    {activeProjectId === project.project_id && (
+                      <span className="ml-2 text-[10px] font-semibold bg-primary/20 text-primary px-1.5 py-0.5 rounded-full uppercase">Active</span>
+                    )}
                   </h3>
                   <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                     <p className="truncate" title={project.source_apk_name || (project as any).apk_name}>APK: {project.source_apk_name || (project as any).apk_name}</p>

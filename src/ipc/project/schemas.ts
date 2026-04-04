@@ -8,3 +8,7 @@ export const createProjectInputSchema = z.object({
 export const deleteProjectInputSchema = z.object({
   projectId: z.string(),
 });
+
+export const setDefaultProjectInputSchema = z.object({
+  projectId: z.string(),
+});

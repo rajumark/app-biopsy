@@ -98,7 +98,7 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center">
       <div 
         className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity" 
         onClick={onClose}

@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SimpleSidebar } from "@/components/simple-sidebar"
 import { AppMenubar } from "@/components/app-menubar"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import DefaultPage from "@/components/default-page"
 import { UploadDialog } from "@/components/upload-dialog"
-import { ProjectListDialog } from "@/components/project-list-dialog"
+import { ProjectListDialog, ProjectInfo } from "@/components/project-list-dialog"
+import { ipc } from "@/ipc/manager"
 
 /*
  * Update this page to modify your home page.
@@ -15,6 +16,43 @@ function HomePage() {
   const [currentPage, setCurrentPage] = useState<{ type: string; title: string }>({ type: "explore-files", title: "" })
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isProjectListOpen, setIsProjectListOpen] = useState(false)
+  const [activeProject, setActiveProject] = useState<ProjectInfo | null>(null)
+  const [isProjectListMandatory, setIsProjectListMandatory] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const projectId = await ipc.client.project.getDefaultProjectHandler()
+        if (projectId) {
+          const allProjects = await ipc.client.project.getProjectList()
+          const matched = allProjects.find((p: any) => p.project_id === projectId)
+          if (matched) {
+            setActiveProject(matched as ProjectInfo)
+            setIsInitializing(false)
+            return
+          }
+        }
+      } catch (e) {
+        console.error("Init error", e)
+      }
+      setIsProjectListMandatory(true)
+      setIsProjectListOpen(true)
+      setIsInitializing(false)
+    }
+    init()
+  }, [])
+
+  const handleSelectProject = async (project: ProjectInfo) => {
+    try {
+      await ipc.client.project.setDefaultProjectHandler({ projectId: project.project_id })
+      setActiveProject(project)
+      setIsProjectListMandatory(false)
+      setIsProjectListOpen(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const renderContent = () => {
     switch(currentPage.type) {
@@ -50,7 +88,7 @@ function HomePage() {
       </div>
       <div className="flex h-screen">
         <div className="w-[200px] border-r bg-muted/50 pt-8">
-          <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} />
+          <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} activeProject={activeProject} />
         </div>
         <div className="flex-1 pt-8">
           <div className="flex flex-1 flex-col gap-4 p-4">
@@ -61,11 +99,24 @@ function HomePage() {
       <UploadDialog 
         isOpen={isUploadDialogOpen} 
         onClose={() => setIsUploadDialogOpen(false)} 
+        onProjectCreated={(projectId) => {
+          // After created, maybe fetch and set active project
+          ipc.client.project.getProjectList().then((list) => {
+            const p = list.find((item: any) => item.project_id === projectId)
+            if (p) handleSelectProject(p as unknown as ProjectInfo)
+          })
+        }}
       />
-      <ProjectListDialog
-        isOpen={isProjectListOpen}
-        onClose={() => setIsProjectListOpen(false)}
-      />
+      {!isInitializing && (
+        <ProjectListDialog
+          isOpen={isProjectListOpen}
+          isMandatory={isProjectListMandatory}
+          onClose={() => setIsProjectListOpen(false)}
+          onSelectProject={handleSelectProject}
+          onCreateProjectClick={() => setIsUploadDialogOpen(true)}
+          activeProjectId={activeProject?.project_id}
+        />
+      )}
     </>
   );
 }

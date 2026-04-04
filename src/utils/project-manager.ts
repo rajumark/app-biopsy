@@ -134,3 +134,31 @@ export function deleteProject(projectId: string): { success: boolean; error?: st
     return { success: false, error: errorMessage };
   }
 }
+
+export function getDefaultProject(): string | null {
+  try {
+    const defaultProjPath = path.join(getProjectsPath(), "default_project.json");
+    if (existsSync(defaultProjPath)) {
+      const data = readFileSync(defaultProjPath, "utf-8");
+      const parsed = JSON.parse(data);
+      if (parsed && typeof parsed.project_id === "string") {
+        return parsed.project_id;
+      }
+    }
+  } catch (error) {
+    console.error("Error getting default project:", error);
+  }
+  return null;
+}
+
+export function setDefaultProject(projectId: string): { success: boolean; error?: string } {
+  try {
+    const defaultProjPath = path.join(getProjectsPath(), "default_project.json");
+    writeFileSync(defaultProjPath, JSON.stringify({ project_id: projectId }, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error("Error setting default project:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: errorMessage };
+  }
+}

@@ -1,7 +1,7 @@
 import { os } from "@orpc/server";
 import { dialog } from "electron";
-import { createProject, getProjects, deleteProject } from "@/utils/project-manager";
-import { createProjectInputSchema, deleteProjectInputSchema } from "./schemas";
+import { createProject, getProjects, deleteProject, getDefaultProject, setDefaultProject } from "@/utils/project-manager";
+import { createProjectInputSchema, deleteProjectInputSchema, setDefaultProjectInputSchema } from "./schemas";
 
 export const createNewProject = os
   .input(createProjectInputSchema)
@@ -13,6 +13,17 @@ export const createNewProject = os
 export const getProjectList = os.handler(async () => {
   return getProjects();
 });
+
+export const getDefaultProjectHandler = os.handler(async () => {
+  return getDefaultProject();
+});
+
+export const setDefaultProjectHandler = os
+  .input(setDefaultProjectInputSchema)
+  .handler(async ({ input }) => {
+    const { projectId } = input;
+    return setDefaultProject(projectId);
+  });
 
 export const deleteExistingProject = os
   .input(deleteProjectInputSchema)
