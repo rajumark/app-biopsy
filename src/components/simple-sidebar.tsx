@@ -159,7 +159,7 @@ const data = {
 export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page: { type: string; title: string }) => void; currentPage?: { type: string; title: string } }) {
   return (
     <div className="flex h-full w-full flex-col bg-card">
-      <div className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <div className="flex h-16 shrink-0 items-center gap-2 px-4">
         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
           <GalleryVerticalEnd className="size-4" />
         </div>
@@ -169,11 +169,11 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
         </div>
       </div>
       <SearchForm />
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto px-2 py-2">
         <nav className="space-y-1">
           {data.navMain.map((section) => (
             <div key={section.title}>
-              <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+              <div className="px-2 py-2 text-sm font-semibold text-muted-foreground">
                 {section.title}
               </div>
               <div className="space-y-1">
@@ -191,7 +191,7 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
                         }
                       }
                     }}
-                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
+                    className={`w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors ${
                       (item.isActive || (currentPage && 
                         ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
                            (item.url === '/files-category' && currentPage.type === 'files-category') ||
