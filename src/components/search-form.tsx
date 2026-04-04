@@ -18,7 +18,7 @@ export function SearchForm({
 }) {
   return (
     <form {...props} onSubmit={(e) => e.preventDefault()}>
-      <SidebarGroup className="py-0">
+      <SidebarGroup className="p-0">
         <SidebarGroupContent className="relative">
           <Label className="sr-only" htmlFor="search">
             Search

@@ -33,8 +33,8 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
   })).filter((section) => section.items.length > 0)
 
   return (
-    <div className="flex h-full w-full flex-col bg-card">
-      <div className="flex h-16 shrink-0 items-center gap-2 px-3">
+    <div className="flex h-full w-full flex-col bg-card px-[6px]">
+      <div className="flex h-16 shrink-0 items-center gap-2 px-0">
         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
           <GalleryVerticalEnd className="size-4" />
         </div>
@@ -43,10 +43,8 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
           <span className="">v1.0.0</span>
         </div>
       </div>
-      <div className="px-1">
-        <SearchForm value={searchQuery} onQueryChange={setSearchQuery} />
-      </div>
-      <div className="flex-1 overflow-auto px-1 py-2">
+      <SearchForm value={searchQuery} onQueryChange={setSearchQuery} />
+      <div className="flex-1 overflow-auto py-2">
         <nav className="space-y-1">
           {filteredNavMain.map((section) => (
             <div key={section.title} className="space-y-1">
@@ -64,7 +62,7 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
                         }
                       }
                     }}
-                    className={`w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors ${
+                    className={`w-full text-left px-[6px] py-1.5 text-sm rounded-full hover:bg-muted transition-colors ${
                       currentPage && (
                         (item.url === '/explore-files' && currentPage.type === 'explore-files') ||
                         (item.url === '/files-category' && currentPage.type === 'files-category') ||

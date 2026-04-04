@@ -9,7 +9,7 @@ export default function BaseLayout({
   return (
     <>
       <DragWindowRegion title="electron-shadcn" />
-      <main className="h-screen p-2 pb-20">{children}</main>
+      <main className="h-screen py-2 pb-20">{children}</main>
     </>
   );
 }
