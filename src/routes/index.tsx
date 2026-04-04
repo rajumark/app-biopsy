@@ -38,14 +38,14 @@ function HomePage() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background border-b">
+      <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background">
         <AppMenubar />
       </div>
       <div className="flex h-screen">
         <div className="w-64 border-r bg-muted/50 pt-8">
           <SimpleSidebar onNavigate={setCurrentPage} currentPage={currentPage} />
         </div>
-        <div className="flex-1 pt-32">
+        <div className="flex-1 pt-8">
           <div className="flex flex-1 flex-col gap-4 p-4">
             {renderContent()}
           </div>

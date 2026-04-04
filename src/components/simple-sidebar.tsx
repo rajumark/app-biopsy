@@ -1,10 +1,5 @@
 import { SearchForm } from "@/components/search-form"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { GalleryVerticalEnd, Minus, Plus } from "lucide-react"
+import { GalleryVerticalEnd } from "lucide-react"
 
 // This is sample data.
 const data = {
@@ -175,54 +170,41 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
       </div>
       <SearchForm />
       <div className="flex-1 overflow-auto p-4">
-        <nav className="space-y-4">
-          {data.navMain.map((item, index) => (
-            <Collapsible
-              key={item.title}
-              defaultOpen={index === 0}
-              className="group/collapsible"
-            >
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm font-medium">{item.title}</span>
-                <CollapsibleTrigger asChild>
-                  <button className="p-1 hover:bg-muted rounded">
-                    <Plus className="h-4 w-4 group-data-[state=open]/collapsible:hidden" />
-                    <Minus className="h-4 w-4 group-data-[state=closed]/collapsible:hidden" />
-                  </button>
-                </CollapsibleTrigger>
+        <nav className="space-y-1">
+          {data.navMain.map((section) => (
+            <div key={section.title}>
+              <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                {section.title}
               </div>
-              {item.items?.length ? (
-                <CollapsibleContent>
-                  <div className="ml-4 space-y-1">
-                    {item.items.map((item) => (
-                      <button
-                        key={item.title}
-                        onClick={() => {
-                          if (onNavigate) {
-                            if (item.url === '/explore-files') {
-                              onNavigate({ type: 'explore-files', title: '' })
-                            } else if (item.url === '/files-category') {
-                              onNavigate({ type: 'files-category', title: '' })
-                            } else {
-                              onNavigate({ type: 'default', title: item.title })
-                            }
-                          }
-                        }}
-                        className={`w-full text-left px-2 py-1 text-sm rounded hover:bg-muted transition-colors ${
-                          (item.isActive || (currentPage && 
-                            ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
-                             (item.url === '/files-category' && currentPage.type === 'files-category') ||
-                             (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title)))
-                            ? 'bg-accent text-accent-foreground' : '')
-                        }`}
-                      >
-                        {item.title}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              ) : null}
-            </Collapsible>
+              <div className="space-y-1">
+                {section.items.map((item) => (
+                  <button
+                    key={item.title}
+                    onClick={() => {
+                      if (onNavigate) {
+                        if (item.url === '/explore-files') {
+                          onNavigate({ type: 'explore-files', title: '' })
+                        } else if (item.url === '/files-category') {
+                          onNavigate({ type: 'files-category', title: '' })
+                        } else {
+                          onNavigate({ type: 'default', title: item.title })
+                        }
+                      }
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
+                      (item.isActive || (currentPage && 
+                        ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
+                           (item.url === '/files-category' && currentPage.type === 'files-category') ||
+                           (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title)))
+                      ? 'bg-accent text-accent-foreground' : ''
+                      )
+                    }`}
+                  >
+                    {item.title}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
       </div>
