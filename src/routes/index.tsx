@@ -38,7 +38,7 @@ function HomePage() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background">
+      <div className="fixed top-0 left-0 right-0 pt-6 z-50 bg-background border-b shadow-xs">
         <AppMenubar />
       </div>
       <div className="flex h-screen">

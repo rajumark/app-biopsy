@@ -17,7 +17,7 @@ import {
 
 export function AppMenubar() {
   return (
-    <Menubar className="w-full">
+    <Menubar className="w-full border-none shadow-none rounded-none">
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
