@@ -1,0 +1,98 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to publish'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          if [[ ! "${{ github.event.inputs.release_tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid release tag format. Expected format: v1.0.0"
+            exit 1
+          fi
+          echo "✅ Release tag validated: ${{ github.event.inputs.release_tag }}"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: appbiopsy-${{ github.event.inputs.platform }}*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Download all artifacts if 'all' selected
+        if: github.event.inputs.platform == 'all'
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find . -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" | head -20 || echo "❌ No artifacts found"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: "Release ${{ github.event.inputs.release_tag }}"
+          body: |
+            🚀 **Appbiopsy ${{ github.event.inputs.release_tag }}**
+
+            ### Downloads
+
+            | Platform | File Name |
+            | -------- | --------- |
+            ${{ (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows') && '| 🪟 Windows | `Appbiopsy-Setup-Windows.exe` |' || '' }}
+            ${{ (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'macos') && '| 🍎 macOS (Intel) | `Appbiopsy-darwin-x64.dmg` |' || '' }}
+            ${{ (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'macos') && '| 🍎 macOS (Apple Silicon) | `Appbiopsy-darwin-arm64.dmg` |' || '' }}
+            ${{ (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'linux') && '| 🐧 Linux (Debian/Ubuntu) | `appbiopsy_${{ github.event.inputs.release_tag }}_amd64.deb` |' || '' }}
+            ${{ (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'linux') && '| 🐧 Linux (Fedora/RHEL) | `appbiopsy-${{ github.event.inputs.release_tag }}-1.x86_64.rpm` |' || '' }}
+
+            🤖 Manual release via CI/CD.
+          files: |
+            **/*.exe
+            **/*.dmg
+            **/*.zip
+            **/*.AppImage
+            **/*.deb
+            **/*.rpm
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "✅ Release ${{ github.event.inputs.release_tag }} created successfully!"
+          echo "📦 Platform: ${{ github.event.inputs.platform }}"
+          echo "🏷️ Pre-release: ${{ github.event.inputs.prerelease }}"

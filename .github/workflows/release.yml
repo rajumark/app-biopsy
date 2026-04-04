@@ -1,0 +1,274 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  detect-platform:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      linux: ${{ steps.check.outputs.linux }}
+      windows: ${{ steps.check.outputs.windows }}
+      macos: ${{ steps.check.outputs.macos }}
+      should_release: ${{ steps.check.outputs.should_release }}
+      release_tag: ${{ steps.check.outputs.release_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Detect platform from commit message
+        id: check
+        run: |
+          COMMIT_MSG=$(git log --format=%B -n 1)
+          echo "🔍 Commit message: $COMMIT_MSG"
+
+          # Set release tag based on current version
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="v$VERSION"
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "📦 Release tag: $RELEASE_TAG"
+
+          SHOULD_RELEASE=false
+
+          if echo "$COMMIT_MSG" | grep -q '\bl\b'; then
+            echo "linux=true" >> $GITHUB_OUTPUT
+            echo "✅ Linux build triggered"
+            SHOULD_RELEASE=true
+          fi
+
+          if echo "$COMMIT_MSG" | grep -q '\bw\b'; then
+            echo "windows=true" >> $GITHUB_OUTPUT
+            echo "✅ Windows build triggered"
+            SHOULD_RELEASE=true
+          fi
+
+          if echo "$COMMIT_MSG" | grep -q '\bm\b'; then
+            echo "macos=true" >> $GITHUB_OUTPUT
+            echo "✅ macOS build triggered"
+            SHOULD_RELEASE=true
+          fi
+
+          if echo "$COMMIT_MSG" | grep -q '#go'; then
+            echo "linux=true" >> $GITHUB_OUTPUT
+            echo "windows=true" >> $GITHUB_OUTPUT
+            echo "macos=true" >> $GITHUB_OUTPUT
+            echo "✅ All platforms build triggered"
+            SHOULD_RELEASE=true
+          fi
+
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
+          echo "🚀 Should release: $SHOULD_RELEASE"
+
+  release-linux:
+    needs: detect-platform
+    if: needs.detect-platform.outputs.linux == 'true'
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for Ubuntu
+        run: |
+          echo "🔨 Building for Ubuntu..."
+          echo "📋 Node version:"
+          node --version
+          echo "📋 NPM version:"
+          npm --version
+          echo "📋 Current directory:"
+          pwd
+          echo ""
+          echo "🔨 Starting build process..."
+          npm run make -- --platform=linux --arch=x64 || {
+            echo "❌ Platform-specific build failed, trying generic build..."
+            npm run make || {
+              echo "❌ All build methods failed"
+              exit 1
+            }
+          }
+
+      - name: List build outputs
+        run: |
+          echo "📁 Build outputs:"
+          find out -type f | head -20 || echo "❌ No files found in out/"
+          echo ""
+          echo "📦 Root directory:"
+          find . -maxdepth 3 -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" | head -10 || echo "❌ No Linux packages found"
+          echo ""
+          echo "📋 Entire out directory structure:"
+          tree out/ 2>/dev/null || find out/ -type f 2>/dev/null || echo "❌ Cannot read out directory"
+
+      - name: Upload Ubuntu artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: appbiopsy-linux-packages
+          path: |
+            out/**/*.AppImage
+            out/**/*.deb
+            out/**/*.rpm
+            **/*.AppImage
+            **/*.deb
+            **/*.rpm
+          retention-days: 30
+        continue-on-error: true
+
+  release-windows:
+    needs: detect-platform
+    if: needs.detect-platform.outputs.windows == 'true'
+    runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for Windows
+        run: |
+          echo "🔨 Building for Windows..."
+          npm run make -- --platform=win32 --arch=x64
+
+      - name: List build outputs
+        run: |
+          echo "📁 Build outputs:"
+          Get-ChildItem -Path out -Recurse -Filter "*.exe" | Select-Object -First 10 | ForEach-Object { $_.FullName }
+          if (-not (Get-ChildItem -Path out -Recurse -Filter "*.exe")) { echo "❌ No Windows executables found" }
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: appbiopsy-windows-packages
+          path: out/**/*.exe
+          retention-days: 30
+        continue-on-error: true
+
+  release-macos:
+    needs: detect-platform
+    if: needs.detect-platform.outputs.macos == 'true'
+    runs-on: macos-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for macOS Intel
+        run: |
+          echo "🔨 Building for macOS Intel (x64)..."
+          npm run make -- --platform=darwin --arch=x64
+
+      - name: Build for macOS M-series
+        run: |
+          echo "🔨 Building for macOS M-series (arm64)..."
+          npm run make -- --platform=darwin --arch=arm64
+
+      - name: List build outputs
+        run: |
+          echo "📁 Build outputs:"
+          find out -type f | head -20 || echo "❌ No files found in out/"
+          echo ""
+          echo "📦 Root directory:"
+          find . -maxdepth 3 -name "*.dmg" -o -name "*.zip" | head -10 || echo "❌ No macOS packages found"
+          echo ""
+          echo "📋 Entire out directory structure:"
+          tree out/ 2>/dev/null || find out/ -type f 2>/dev/null || echo "❌ Cannot read out directory"
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: appbiopsy-macos-packages
+          path: |
+            out/**/*.dmg
+            out/**/*.zip
+            **/*.dmg
+            **/*.zip
+          retention-days: 30
+        continue-on-error: true
+
+  create-release:
+    needs: [detect-platform, release-linux, release-windows, release-macos]
+    if: needs.detect-platform.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List all downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find artifacts -type f | head -20 || echo "❌ No artifacts found"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.detect-platform.outputs.release_tag }}
+          name: "Release ${{ needs.detect-platform.outputs.release_tag }}"
+          body: |
+            🚀 **Appbiopsy ${{ needs.detect-platform.outputs.release_tag }}**
+
+            ### Downloads
+
+            | Platform | File Name |
+            | -------- | --------- |
+            ${{ needs.detect-platform.outputs.windows == 'true' && '| 🪟 Windows | `Appbiopsy-Setup-Windows.exe` |' || '' }}
+            ${{ needs.detect-platform.outputs.macos == 'true' && '| 🍎 macOS (Intel) | `Appbiopsy-darwin-x64.zip` |' || '' }}
+            ${{ needs.detect-platform.outputs.macos == 'true' && '| 🍎 macOS (Apple Silicon) | `Appbiopsy-darwin-arm64.zip` |' || '' }}
+            ${{ needs.detect-platform.outputs.linux == 'true' && '| 🐧 Linux (Debian/Ubuntu) | `appbiopsy_1.4.0_amd64.deb` |' || '' }}
+            ${{ needs.detect-platform.outputs.linux == 'true' && '| 🐧 Linux (Fedora/RHEL) | `appbiopsy-1.4.0-1.x86_64.rpm` |' || '' }}
+
+            🤖 Automated release via CI/CD.
+          files: |
+            artifacts/**/*.AppImage
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.zip
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "✅ Release created successfully!"

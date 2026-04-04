@@ -1,0 +1,131 @@
+name: Build All Platforms
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            artifact_name: appbiopsy-linux-packages
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: appbiopsy-windows-packages
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            artifact_name: appbiopsy-macos-intel-packages
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            artifact_name: appbiopsy-macos-arm-packages
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for ${{ matrix.platform }} (${{ matrix.arch }})
+        run: |
+          echo "🔨 Building for ${{ matrix.platform }} (${{ matrix.arch }})..."
+          npm run make -- --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
+
+      - name: List build outputs
+        run: |
+          echo "📁 Build outputs for ${{ matrix.platform }} (${{ matrix.arch }}):"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            Get-ChildItem -Path out -Recurse -Filter "*.exe" | Select-Object -First 10 | ForEach-Object { $_.FullName }
+          else
+            find out -type f | head -20 || echo "❌ No files found in out/"
+            find . -maxdepth 3 -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" | head -10 || echo "❌ No packages found"
+          fi
+        shell: pwsh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            out/**/*.exe
+            out/**/*.dmg
+            out/**/*.zip
+            out/**/*.AppImage
+            out/**/*.deb
+            out/**/*.rpm
+          retention-days: 30
+        continue-on-error: true
+
+  create-release:
+    needs: build-all
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get tag name
+        id: tag
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List all downloaded artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          find artifacts -type f | head -20 || echo "❌ No artifacts found"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          name: "Release ${{ steps.tag.outputs.TAG }}"
+          body: |
+            🚀 **Appbiopsy ${{ steps.tag.outputs.TAG }}**
+
+            ### Downloads
+
+            | Platform | File Name |
+            | -------- | --------- |
+            | 🪟 Windows | `Appbiopsy-Setup-Windows.exe` |
+            | 🍎 macOS (Intel) | `Appbiopsy-darwin-x64.dmg` |
+            | 🍎 macOS (Apple Silicon) | `Appbiopsy-darwin-arm64.dmg` |
+            | 🐧 Linux (Debian/Ubuntu) | `appbiopsy_${{ steps.tag.outputs.TAG }}_amd64.deb` |
+            | 🐧 Linux (Fedora/RHEL) | `appbiopsy-${{ steps.tag.outputs.TAG }}-1.x86_64.rpm` |
+
+            🤖 Automated release via CI/CD.
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.zip
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
