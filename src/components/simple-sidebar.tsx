@@ -62,7 +62,7 @@ export function SimpleSidebar({ onNavigate, currentPage }: { onNavigate?: (page:
                         }
                       }
                     }}
-                    className={`w-full text-left px-[6px] py-1.5 text-sm rounded-full hover:bg-muted transition-colors ${
+                    className={`w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors ${
                       currentPage && (
                         (item.url === '/explore-files' && currentPage.type === 'explore-files') ||
                         (item.url === '/files-category' && currentPage.type === 'files-category') ||
