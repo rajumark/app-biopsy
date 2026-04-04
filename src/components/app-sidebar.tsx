@@ -175,7 +175,7 @@ const data = {
   ],
 };
 
-export function AppSidebar({ onNavigate, ...props }: React.ComponentProps<typeof Sidebar> & { onNavigate?: (page: { type: string; title: string }) => void }) {
+export function AppSidebar({ onNavigate, currentPage, ...props }: React.ComponentProps<typeof Sidebar> & { onNavigate?: (page: { type: string; title: string }) => void; currentPage?: { type: string; title: string } }) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -220,7 +220,11 @@ export function AppSidebar({ onNavigate, ...props }: React.ComponentProps<typeof
                           <SidebarMenuSubItem key={item.title}>
                             <SidebarMenuSubButton
                               asChild
-                              isActive={item.isActive}
+                              isActive={item.isActive || (currentPage && 
+                                ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
+                                 (item.url === '/files-category' && currentPage.type === 'files-category') ||
+                                 (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title))
+                              )}
                             >
                               <a 
                                 href={item.url} 
