@@ -2,27 +2,39 @@ import * as React from "react"
 import { X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { ipc } from "@/ipc/manager"
+
 interface UploadDialogProps {
   isOpen: boolean
   onClose: () => void
+  onProjectCreated?: (projectId: string) => void
 }
 
-export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
+export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialogProps) {
   const [selectedFile, setSelectedFile] = React.useState<{ name: string; path: string } | null>(null)
   const [isDragOver, setIsDragOver] = React.useState(false)
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const [isCreating, setIsCreating] = React.useState(false)
 
   if (!isOpen) return null
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.name.toLowerCase().endsWith('.apk')) {
-      setSelectedFile({
-        name: file.name,
-        path: (file as any).path || file.name
-      })
-    } else if (file) {
-      alert("Please select a valid .apk file")
+  const openFileDialog = async () => {
+    if (isCreating) return
+    
+    try {
+      const result = await ipc.client.project.selectApkFile()
+      if (result.success && result.filePath) {
+        // Extract filename from path
+        const pathParts = result.filePath.split(/[/\\]/)
+        const fileName = pathParts[pathParts.length - 1]
+        
+        setSelectedFile({
+          name: fileName,
+          path: result.filePath
+        })
+      }
+    } catch (error) {
+      console.error("Error selecting file:", error)
+      alert("Failed to open file dialog")
     }
   }
 
@@ -41,16 +53,44 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setIsDragOver(false)
     const file = e.dataTransfer.files?.[0]
     if (file && file.name.toLowerCase().endsWith('.apk')) {
+      const filePath = (file as any).path
+      if (!filePath) {
+        alert("Could not get the absolute path of this file. Please use the selection button instead.")
+        return
+      }
       setSelectedFile({
         name: file.name,
-        path: (file as any).path || file.name
+        path: filePath
       })
     }
   }
 
   const resetSelection = () => {
     setSelectedFile(null)
-    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  const handleCreateProject = async () => {
+    if (!selectedFile) return
+
+    setIsCreating(true)
+    try {
+      const result = await ipc.client.project.createNewProject({
+        apkPath: selectedFile.path
+      })
+
+      if (result.success && result.projectId) {
+        alert(`Project created successfully! ID: ${result.projectId}`)
+        onProjectCreated?.(result.projectId)
+        onClose()
+      } else {
+        alert(`Failed to create project: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("Project creation error:", error)
+      alert("An unexpected error occurred during project creation")
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
@@ -72,20 +112,12 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         </div>
 
         <div className="p-4">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept=".apk"
-            onChange={handleFileSelect}
-          />
-
           {!selectedFile ? (
             <div 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openFileDialog}
               className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 text-center cursor-pointer transition-colors ${
                 isDragOver 
                 ? "border-primary bg-primary/10" 
@@ -121,14 +153,11 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
               </div>
 
               <div className="flex items-center justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={resetSelection}>
+                <Button variant="outline" size="sm" onClick={resetSelection} disabled={isCreating}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={() => {
-                  console.log("Continuing with", selectedFile)
-                  onClose()
-                }}>
-                  Continue
+                <Button size="sm" onClick={handleCreateProject} disabled={isCreating}>
+                  {isCreating ? "Creating..." : "Create project"}
                 </Button>
               </div>
             </div>
