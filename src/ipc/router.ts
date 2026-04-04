@@ -3,6 +3,7 @@ import { createNewProject, selectApkFile, getProjectList, deleteExistingProject,
 import { shell } from "./shell";
 import { theme } from "./theme";
 import { window } from "./window";
+import { getToolsStatus, downloadJadx } from "./tools";
 
 export const router = {
   theme,
@@ -17,4 +18,8 @@ export const router = {
     getDefaultProjectHandler,
     setDefaultProjectHandler,
   },
+  tools: {
+    getToolsStatus,
+    downloadJadx,
+  }
 };

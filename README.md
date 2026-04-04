@@ -100,6 +100,8 @@ The auto update is implemented using [update-electron-app](https://github.com/el
 
 Check out the full documentation [here](https://docs.luanroger.dev/electron-shadcn).
 
+- [JADX Tool Guide of Use](./tool_jadx_guide_of_use_readme.md)
+
 ## Used by
 
 - [yaste](https://github.com/LuanRoger/yaste) - yaste (Yet another super ₛᵢₘₚₗₑ text editor) is a text editor, that can be used as an alternative to the native text editor of your SO, maybe.
