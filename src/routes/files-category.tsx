@@ -37,8 +37,8 @@ function FilesCategoryPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <SidebarInset className="overflow-hidden flex flex-col h-screen">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 shrink-0">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
@@ -56,7 +56,7 @@ function FilesCategoryPage() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 max-w-4xl mx-auto w-full">
+        <div className="flex-1 flex flex-col gap-4 p-4 max-w-4xl mx-auto w-full overflow-hidden min-h-0">
           <FilesCategoryPanel activeProject={activeProject} />
         </div>
       </SidebarInset>

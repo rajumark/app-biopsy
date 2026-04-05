@@ -56,7 +56,7 @@ function ExploreFilesPanel({ activeProject }: { activeProject: ProjectInfo | nul
   }
 
   return (
-    <div className="flex flex-col gap-4 p-2 max-w-2xl">
+    <div className="flex-1 overflow-auto flex flex-col gap-4 p-2 max-w-2xl custom-scrollbar min-h-0">
       <h1 className="text-xl font-semibold">Explore Files</h1>
 
       {/* APK info card */}
@@ -171,8 +171,8 @@ function HomePage() {
           onToolsCheck={() => setIsDecompileManagerOpen(true)}
         />
       </div>
-      <div className="flex h-screen">
-        <div className="w-[200px] border-r bg-muted/50 pt-8">
+      <div className="flex h-screen overflow-hidden">
+        <div className="w-[200px] border-r bg-muted/50 pt-8 shrink-0">
           <SimpleSidebar 
             onNavigate={setCurrentPage} 
             currentPage={currentPage} 
@@ -181,8 +181,8 @@ function HomePage() {
             onDecompileClick={() => setIsDecompileManagerOpen(true)}
           />
         </div>
-        <div className="flex-1 pt-8">
-          <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex-1 pt-20 flex flex-col overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col p-4 overflow-hidden min-h-0">
             {renderContent()}
           </div>
         </div>

@@ -79,7 +79,7 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
   }
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="flex-1 flex flex-col gap-4 min-h-0">
       <div className="flex items-center justify-between px-1">
         <div className="space-y-0.5">
           <h2 className="text-lg font-semibold tracking-tight">Project Explorer</h2>
@@ -92,8 +92,8 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
         </Button>
       </div>
 
-      <div className="flex-1 overflow-hidden border rounded-xl bg-card/30 backdrop-blur-sm shadow-sm flex flex-col">
-        <div className="flex-1 overflow-auto p-2 custom-scrollbar">
+      <div className="flex-1 overflow-hidden border rounded-xl bg-card/30 backdrop-blur-sm shadow-sm flex flex-col min-h-0">
+        <div className="flex-1 overflow-auto p-2 custom-scrollbar min-h-0">
           <UncontrolledTreeEnvironment
             dataProvider={new StaticTreeDataProvider(treeData, (item, data) => ({ ...item, data }))}
             getItemTitle={(item) => item.data}
