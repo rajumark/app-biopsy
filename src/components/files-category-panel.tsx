@@ -218,7 +218,7 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
                   height="100%"
                   language={getLanguage(selectedFile.data)}
                   value={fileContent || "// Loading..."}
-                  theme="vs-dark"
+                  theme="vs"
                   onMount={() => setMonacoLoaded(true)}
                   loading={
                     <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground bg-background">
