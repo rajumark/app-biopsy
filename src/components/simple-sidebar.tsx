@@ -10,10 +10,6 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Explore files",
-          url: "/explore-files",
-        },
-        {
           title: "Files Category",
           url: "/files-category",
         },
@@ -26,12 +22,11 @@ const data = {
   ],
 }
 
-export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowProjectList, onDecompileClick }: { 
+export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowProjectList }: { 
   onNavigate?: (page: { type: string; title: string }) => void; 
   currentPage?: { type: string; title: string };
   activeProject?: any;
   onShowProjectList?: () => void;
-  onDecompileClick?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -62,17 +57,6 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
                 <span className="text-[10px] text-muted-foreground mt-0.5 truncate">
                   {new Date(activeProject.projection_creation_time).toLocaleDateString()}
                 </span>
-                <div className="flex items-center gap-1.5 mt-1.5" onClick={(e) => e.stopPropagation()}>
-                  <span className="px-1.5 py-0.5 rounded-md bg-muted/60 text-[9px] font-medium uppercase border">
-                    {activeProject.jadx_decompile_status === 0 ? "Pending" : "Unknown"}
-                  </span>
-                  <button 
-                    onClick={onDecompileClick}
-                    className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[9px] font-semibold uppercase hover:bg-primary/20 transition-colors border border-primary/20"
-                  >
-                    Decompile
-                  </button>
-                </div>
               </>
             ) : (
               <span className="font-medium"></span>
@@ -91,9 +75,7 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
                     key={item.title}
                     onClick={() => {
                       if (onNavigate) {
-                        if (item.url === '/explore-files') {
-                          onNavigate({ type: 'explore-files', title: '' })
-                        } else if (item.url === '/files-category') {
+                        if (item.url === '/files-category') {
                           onNavigate({ type: 'files-category', title: '' })
                         } else if (item.url === '/permissions') {
                           onNavigate({ type: 'permissions', title: '' })
@@ -104,10 +86,9 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
                     }}
                     className={`w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors ${
                       currentPage && (
-                        (item.url === '/explore-files' && currentPage.type === 'explore-files') ||
                         (item.url === '/files-category' && currentPage.type === 'files-category') ||
                         (item.url === '/permissions' && currentPage.type === 'permissions') ||
-                        (item.url !== '/explore-files' && item.url !== '/files-category' && item.url !== '/permissions' && currentPage.type === 'default' && currentPage.title === item.title)
+                        (item.url !== '/files-category' && item.url !== '/permissions' && currentPage.type === 'default' && currentPage.title === item.title)
                       ) ? 'bg-accent text-accent-foreground' : ''
                     }`}
                   >

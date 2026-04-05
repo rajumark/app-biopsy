@@ -28,10 +28,6 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Explore files",
-          url: "/explore-files",
-        },
-        {
           title: "Files Category",
           url: "/files-category",
         },
@@ -221,9 +217,8 @@ export function AppSidebar({ onNavigate, currentPage, ...props }: React.Componen
                             <SidebarMenuSubButton
                               asChild
                               isActive={item.isActive || (currentPage && 
-                                ((item.url === '/explore-files' && currentPage.type === 'explore-files') ||
-                                 (item.url === '/files-category' && currentPage.type === 'files-category') ||
-                                 (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title))
+                                ((item.url === '/files-category' && currentPage.type === 'files-category') ||
+                                 (item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title))
                               )}
                             >
                               <a 
@@ -231,9 +226,7 @@ export function AppSidebar({ onNavigate, currentPage, ...props }: React.Componen
                                 onClick={(e) => {
                                   e.preventDefault()
                                   if (onNavigate) {
-                                    if (item.url === '/explore-files') {
-                                      onNavigate({ type: 'explore-files', title: '' })
-                                    } else if (item.url === '/files-category') {
+                                    if (item.url === '/files-category') {
                                       onNavigate({ type: 'files-category', title: '' })
                                     } else {
                                       onNavigate({ type: 'default', title: item.title })
