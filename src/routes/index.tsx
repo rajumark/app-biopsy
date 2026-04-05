@@ -101,6 +101,19 @@ function ExploreFilesPanel({ activeProject }: { activeProject: ProjectInfo | nul
   )
 }
 
+// ─── Permissions Page ────────────────────────────────────────────────────────
+
+function PermissionsPage() {
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-semibold tracking-tight">Permissions</h1>
+        <p className="text-muted-foreground text-sm">Permission page coming soon</p>
+      </div>
+    </div>
+  )
+}
+
 // ─── Home Page ───────────────────────────────────────────────────────────────
 
 function HomePage() {
@@ -152,6 +165,8 @@ function HomePage() {
         return <ExploreFilesPanel activeProject={activeProject} />
       case "files-category":
         return <FilesCategoryPanel activeProject={activeProject} />
+      case "permissions":
+        return <PermissionsPage />
       default:
         if (currentPage.title) {
           return <DefaultPage title={currentPage.title} />

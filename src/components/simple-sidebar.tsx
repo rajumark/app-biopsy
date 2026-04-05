@@ -17,6 +17,10 @@ const data = {
           title: "Files Category",
           url: "/files-category",
         },
+        {
+          title: "Permissions",
+          url: "/permissions",
+        },
       ],
     },
   ],
@@ -91,6 +95,8 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
                           onNavigate({ type: 'explore-files', title: '' })
                         } else if (item.url === '/files-category') {
                           onNavigate({ type: 'files-category', title: '' })
+                        } else if (item.url === '/permissions') {
+                          onNavigate({ type: 'permissions', title: '' })
                         } else {
                           onNavigate({ type: 'default', title: item.title })
                         }
@@ -100,7 +106,8 @@ export function SimpleSidebar({ onNavigate, currentPage, activeProject, onShowPr
                       currentPage && (
                         (item.url === '/explore-files' && currentPage.type === 'explore-files') ||
                         (item.url === '/files-category' && currentPage.type === 'files-category') ||
-                        (item.url !== '/explore-files' && item.url !== '/files-category' && currentPage.type === 'default' && currentPage.title === item.title)
+                        (item.url === '/permissions' && currentPage.type === 'permissions') ||
+                        (item.url !== '/explore-files' && item.url !== '/files-category' && item.url !== '/permissions' && currentPage.type === 'default' && currentPage.title === item.title)
                       ) ? 'bg-accent text-accent-foreground' : ''
                     }`}
                   >
