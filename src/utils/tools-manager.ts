@@ -4,14 +4,13 @@ import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import os from "node:os";
 import { app } from "electron";
+import { getToolsPath, getProjectsPath } from "./app-data";
 import https from "node:https";
 
 const execAsync = promisify(exec);
 
-export function getToolsPath(): string {
-  const homeDir = os.homedir();
-  return path.join(homeDir, ".config", "Appbiopsy", "tools");
-}
+// Already imported from app-data
+
 
 export function getToolsInfoPath(): string {
   return path.join(getToolsPath(), "tools_info.json");
@@ -186,8 +185,8 @@ export async function decompileApk(
       return { success: false, error: "JRE is not installed. Please download it from Decompile Manager." };
     }
 
-    const homeDir = os.homedir();
-    const projectDir = path.join(homeDir, ".config", "Appbiopsy", "projects", projectId);
+    const projectDir = path.join(getProjectsPath(), projectId);
+
     const apkPath = path.join(projectDir, "source_files", "local_app.apk");
     const outputDir = path.join(projectDir, "source_files", "decompiled");
 

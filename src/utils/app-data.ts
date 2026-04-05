@@ -21,6 +21,14 @@ export function getProjectsPath(): string {
 }
 
 /**
+ * Get the tools directory path within user data
+ */
+export function getToolsPath(): string {
+  return path.join(getUserDataPath(), 'tools');
+}
+
+
+/**
  * Initialize app data directories
  * Creates the user data folder and projects subfolder if they don't exist
  */
@@ -40,6 +48,14 @@ export function initializeAppDirectories(): void {
       mkdirSync(projectsPath, { recursive: true });
       console.log(`Created projects directory: ${projectsPath}`);
     }
+
+    const toolsPath = getToolsPath();
+    // Create tools directory if it doesn't exist
+    if (!existsSync(toolsPath)) {
+      mkdirSync(toolsPath, { recursive: true });
+      console.log(`Created tools directory: ${toolsPath}`);
+    }
+
 
     console.log('App directories initialized successfully');
   } catch (error) {
