@@ -21,7 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import Editor from "@monaco-editor/react";
-import "@/lib/monaco"; // Initialize offline Monaco
+import "@/lib/monaco"; // Initialize offline Monaco 
 
 export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectInfo | null }) {
   const [treeData, setTreeData] = useState<Record<string, TreeItem> | null>(null);
