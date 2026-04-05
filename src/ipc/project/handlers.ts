@@ -1,7 +1,7 @@
 import { os } from "@orpc/server";
 import { dialog } from "electron";
-import { createProject, getProjects, deleteProject, getDefaultProject, setDefaultProject, getFileTree } from "@/utils/project-manager";
-import { createProjectInputSchema, deleteProjectInputSchema, setDefaultProjectInputSchema, fetchFileTreeInputSchema } from "./schemas";
+import { createProject, getProjects, deleteProject, getDefaultProject, setDefaultProject, getFileTree, getFileContents } from "@/utils/project-manager";
+import { createProjectInputSchema, deleteProjectInputSchema, setDefaultProjectInputSchema, fetchFileTreeInputSchema, readFileContentInputSchema } from "./schemas";
 
 export const createNewProject = os
   .input(createProjectInputSchema)
@@ -56,4 +56,11 @@ export const fetchFileTree = os
   .handler(async ({ input }) => {
     const { projectId } = input;
     return getFileTree(projectId);
+  });
+
+export const readFileContent = os
+  .input(readFileContentInputSchema)
+  .handler(async ({ input }) => {
+    const { path: filePath } = input;
+    return getFileContents(filePath);
   });

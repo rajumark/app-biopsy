@@ -4,24 +4,32 @@ import 'react-complex-tree/lib/style-modern.css';
 import { ipc } from "@/ipc/manager";
 import { ProjectInfo } from "./project-list-dialog";
 import { TreeItem } from "@/utils/project-manager";
-import { Folder, FileCode, ChevronRight, ChevronDown, RefreshCw, FolderOpen, Code2 } from "lucide-react";
+import { Folder, FileCode, ChevronRight, ChevronDown, RefreshCw, FolderOpen, Code2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import Editor from "@monaco-editor/react";
 
 export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectInfo | null }) {
   const [treeData, setTreeData] = useState<Record<string, TreeItem> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Editor state
+  const [selectedFile, setSelectedFile] = useState<TreeItem | null>(null);
+  const [fileContent, setFileContent] = useState<string>("");
+  const [readingFile, setReadingFile] = useState(false);
 
   useEffect(() => {
     if (activeProject) {
       loadTree();
     } else {
       setTreeData(null);
+      setSelectedFile(null);
+      setFileContent("");
     }
   }, [activeProject]);
 
@@ -40,6 +48,40 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
       setError(e.message || "Error loading files");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileSelect = async (item: TreeItem) => {
+    if (item.isFolder) return;
+    if (selectedFile?.path === item.path) return;
+    
+    setReadingFile(true);
+    setSelectedFile(item);
+    try {
+      const res = await ipc.client.project.readFileContent({ path: item.path });
+      if (res.success) {
+        setFileContent(res.content || "");
+      } else {
+        setFileContent(`Error reading file: ${res.error}`);
+      }
+    } catch (e: any) {
+      setFileContent(`Error: ${e.message}`);
+    } finally {
+      setReadingFile(false);
+    }
+  };
+
+  const getLanguage = (fileName: string) => {
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    switch (ext) {
+      case "java": return "java";
+      case "xml": return "xml";
+      case "json": return "json";
+      case "js": return "javascript";
+      case "ts": return "typescript";
+      case "smali": return "plaintext";
+      case "txt": return "plaintext";
+      default: return "plaintext";
     }
   };
 
@@ -86,9 +128,9 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
   return (
     <div className="flex-1 flex h-full min-h-0 overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="h-full w-full items-stretch">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="flex flex-col min-h-0 bg-muted/5">
+        <ResizablePanel defaultSize={20} minSize={10} className="flex flex-col min-h-0 bg-muted/5">
           <div className="flex items-center justify-between p-3 border-b shrink-0">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Files</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Files Explorer</h3>
             <Button variant="ghost" size="icon" onClick={loadTree} title="Refresh Tree" className="size-6">
               <RefreshCw className="size-3" />
             </Button>
@@ -121,9 +163,10 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
                   <div 
                      {...(context as any).interactiveElementProps}
                      className={`flex items-center gap-1.5 py-1 px-2 rounded-md cursor-pointer transition-colors group ${
-                       context.isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-foreground/80'
+                       context.isSelected || selectedFile?.path === (item as any).path ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-foreground/80'
                      }`}
                      style={{ paddingLeft: `${depth * 12 + 4}px` }}
+                     onClick={() => handleFileSelect(item as any)}
                   >
                     {arrow}
                     {item.isFolder ? 
@@ -143,18 +186,53 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize={80} className="flex flex-col items-center justify-center bg-background p-8 min-h-0">
-          <div className="flex flex-col items-center gap-4 text-center max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="size-16 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
-                <Code2 className="size-8 text-primary/40" />
-             </div>
-             <div className="space-y-1.5">
-               <h3 className="text-xl font-semibold tracking-tight uppercase">Coming soon monaco editor</h3>
-               <p className="text-sm text-muted-foreground leading-relaxed">
-                 A high-performance code editor is being integrated for exploring decompiled source files directly within the app.
-               </p>
-             </div>
-          </div>
+        <ResizablePanel defaultSize={80} minSize={10} className="flex flex-col bg-background min-h-0 relative">
+          {selectedFile ? (
+            <>
+              <div className="h-9 border-b flex items-center px-4 bg-muted/20 shrink-0">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                  <FileCode className="size-3.5" />
+                  <span>{selectedFile.data}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-muted/50 text-[10px] uppercase">{getLanguage(selectedFile.data)}</span>
+                </div>
+                {readingFile && <Loader2 className="size-3.5 ml-auto animate-spin text-muted-foreground" />}
+              </div>
+              <div className="flex-1 min-h-0 relative">
+                {readingFile ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+                    <Loader2 className="size-8 animate-spin text-primary/40" />
+                  </div>
+                ) : null}
+                <Editor
+                  height="100%"
+                  language={getLanguage(selectedFile.data)}
+                  value={fileContent}
+                  theme="vs-dark"
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: true },
+                    fontSize: 13,
+                    fontFamily: "Geist Mono, monospace",
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    padding: { top: 16 }
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
+               <div className="size-16 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 mb-4">
+                  <Code2 className="size-8 text-primary/40" />
+               </div>
+               <div className="space-y-1.5 max-w-sm">
+                 <h3 className="text-xl font-semibold tracking-tight uppercase">Code Explorer</h3>
+                 <p className="text-sm text-muted-foreground leading-relaxed">
+                   Select a file from the explorer to view its decompiled source code.
+                 </p>
+               </div>
+            </div>
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
       

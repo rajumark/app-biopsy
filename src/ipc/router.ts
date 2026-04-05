@@ -1,5 +1,5 @@
 import { app } from "./app";
-import { createNewProject, selectApkFile, getProjectList, deleteExistingProject, getDefaultProjectHandler, setDefaultProjectHandler, fetchFileTree } from "./project";
+import { createNewProject, selectApkFile, getProjectList, deleteExistingProject, getDefaultProjectHandler, setDefaultProjectHandler, fetchFileTree, readFileContent } from "./project";
 import { shell } from "./shell";
 import { theme } from "./theme";
 import { window } from "./window";
@@ -18,6 +18,7 @@ export const router = {
     getDefaultProjectHandler,
     setDefaultProjectHandler,
     fetchFileTree,
+    readFileContent,
   },
   tools: {
     getToolsStatus,

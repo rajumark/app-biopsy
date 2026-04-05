@@ -16,3 +16,7 @@ export const setDefaultProjectInputSchema = z.object({
 export const fetchFileTreeInputSchema = z.object({
   projectId: z.string(),
 });
+
+export const readFileContentInputSchema = z.object({
+  path: z.string(),
+});

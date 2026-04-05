@@ -221,3 +221,17 @@ export function getFileTree(projectId: string): { success: boolean; tree?: Recor
     return { success: false, error: errorMessage };
   }
 }
+
+export function getFileContents(filePath: string): { success: boolean; content?: string; error?: string } {
+  try {
+    if (!existsSync(filePath)) {
+      return { success: false, error: "File not found" };
+    }
+    const data = readFileSync(filePath, "utf-8");
+    return { success: true, content: data };
+  } catch (error) {
+    console.error("Error reading file:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: errorMessage };
+  }
+}
