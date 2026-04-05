@@ -182,7 +182,7 @@ function HomePage() {
           />
         </div>
         <div className="flex-1 pt-20 flex flex-col overflow-hidden min-h-0">
-          <div className="flex-1 flex flex-col p-4 overflow-hidden min-h-0">
+          <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${currentPage.type === 'files-category' ? '' : 'p-4'}`}>
             {renderContent()}
           </div>
         </div>

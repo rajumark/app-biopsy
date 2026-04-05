@@ -56,7 +56,7 @@ function FilesCategoryPage() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex-1 flex flex-col gap-4 p-4 max-w-4xl mx-auto w-full overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col gap-4 max-w-none w-full overflow-hidden min-h-0">
           <FilesCategoryPanel activeProject={activeProject} />
         </div>
       </SidebarInset>
