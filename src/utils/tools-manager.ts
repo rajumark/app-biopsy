@@ -208,8 +208,17 @@ export async function decompileApk(
       }
     }
 
+    // Mac-specific deeper resolution
+    if (os.platform() === "darwin") {
+      const macHome = path.join(jreHome, "Contents", "Home");
+      if (fs.existsSync(macHome)) {
+        jreHome = macHome;
+      }
+    }
+
     const jadxBin = path.join(info.jadx_path, "bin", "jadx");
     const javaBin = path.join(jreHome, "bin", "java");
+
 
     // Ensure executables are runnable
     if (fs.existsSync(jadxBin)) {
