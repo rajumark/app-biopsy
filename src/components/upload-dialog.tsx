@@ -2,6 +2,7 @@ import * as React from "react"
 import { X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DecompilingDialog } from "./decompiling-dialog"
 
 import { ipc } from "@/ipc/manager"
 
@@ -16,6 +17,8 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
   const [projectName, setProjectName] = React.useState("")
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [isCreating, setIsCreating] = React.useState(false)
+  const [showDecompilingDialog, setShowDecompilingDialog] = React.useState(false)
+  const [createdProjectId, setCreatedProjectId] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -23,6 +26,8 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
       setProjectName("")
       setIsCreating(false)
       setIsDragOver(false)
+      setShowDecompilingDialog(false)
+      setCreatedProjectId(null)
     }
   }, [isOpen])
 
@@ -91,10 +96,9 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
       })
 
       if (result.success && result.projectId) {
-        alert(`Project created successfully! ID: ${result.projectId}`)
-        setProjectName("")
+        setCreatedProjectId(result.projectId)
+        setShowDecompilingDialog(true)
         onProjectCreated?.(result.projectId)
-        onClose()
       } else {
         alert(`Failed to create project: ${result.error}`)
       }
@@ -104,6 +108,11 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleDecompilingComplete = () => {
+    setShowDecompilingDialog(false)
+    onClose()
   }
 
   return (
@@ -186,6 +195,14 @@ export function UploadDialog({ isOpen, onClose, onProjectCreated }: UploadDialog
           )}
         </div>
       </div>
+      
+      {/* Decompiling Dialog */}
+      <DecompilingDialog 
+        isOpen={showDecompilingDialog}
+        projectId={createdProjectId}
+        onClose={() => setShowDecompilingDialog(false)}
+        onComplete={handleDecompilingComplete}
+      />
     </div>
   )
 }
