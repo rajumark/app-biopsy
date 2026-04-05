@@ -1,16 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { UncontrolledTreeEnvironment, Tree, StaticTreeDataProvider } from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
 import { ipc } from "@/ipc/manager";
 import { ProjectInfo } from "./project-list-dialog";
 import { TreeItem } from "@/utils/project-manager";
-import { Folder, FileCode, ChevronRight, ChevronDown, RefreshCw, FolderOpen, Code2, Loader2, AlertCircle } from "lucide-react";
+import { Folder, FileCode, ChevronRight, ChevronDown, RefreshCw, FolderOpen, Code2, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import Editor from "@monaco-editor/react";
 import "@/lib/monaco"; // Initialize offline Monaco
 
@@ -18,12 +27,31 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
   const [treeData, setTreeData] = useState<Record<string, TreeItem> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // Editor state
   const [selectedFile, setSelectedFile] = useState<TreeItem | null>(null);
   const [fileContent, setFileContent] = useState<string>("");
   const [readingFile, setReadingFile] = useState(false);
   const [monacoLoaded, setMonacoLoaded] = useState(false);
+
+  // Memoized data provider to prevent reconstruction on every render
+  const dataProvider = useMemo(() => {
+    if (!treeData) return null;
+    return new StaticTreeDataProvider(treeData, (item, data) => ({ ...item, data }));
+  }, [treeData]);
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsSearchOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   useEffect(() => {
     if (activeProject) {
@@ -89,6 +117,11 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
     }
   };
 
+  const allFiles = useMemo(() => {
+    if (!treeData) return [];
+    return Object.values(treeData).filter(item => !item.isFolder && item.index !== "root");
+  }, [treeData]);
+
   if (!activeProject) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
@@ -131,14 +164,19 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
         <ResizablePanel defaultSize={30} minSize={10} className="flex flex-col min-h-0 bg-muted/5">
           <div className="flex items-center justify-between p-3 border-b shrink-0">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Explorer</h3>
-            <Button variant="ghost" size="icon" onClick={loadTree} title="Refresh Tree" className="size-6">
-              <RefreshCw className="size-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} title="Search Files (⌘K)" className="size-6">
+                <Search className="size-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={loadTree} title="Refresh Tree" className="size-6">
+                <RefreshCw className="size-3" />
+              </Button>
+            </div>
           </div>
           <div className="flex-1 overflow-auto p-2 custom-scrollbar min-h-0">
-            {treeData && (
+            {dataProvider && (
               <UncontrolledTreeEnvironment
-                dataProvider={new StaticTreeDataProvider(treeData, (item, data) => ({ ...item, data }))}
+                dataProvider={dataProvider}
                 getItemTitle={(item) => item.data}
                 viewState={{}}
                 renderItemTitle={({ title }) => <span className="truncate">{title}</span>}
@@ -254,6 +292,41 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {/* Command Palette Search Dialog */}
+      <CommandDialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <Command>
+          <CommandInput placeholder="Search files in project..." />
+          <CommandList className="max-h-[300px] overflow-y-auto">
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup heading="Project Files">
+              {allFiles.map((file) => (
+                <CommandItem 
+                  key={file.path} 
+                  onSelect={() => {
+                    handleFileSelect(file);
+                    setIsSearchOpen(false);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <div className="flex items-center gap-2 flex-1 overflow-hidden">
+                    <FileCode className="size-4 text-muted-foreground shrink-0" />
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-medium truncate">{file.data}</span>
+                      <span className="text-[10px] text-muted-foreground truncate opacity-70">
+                        {file.path.split('source_files/decompiled/').pop()}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground/50 border px-1 rounded ml-auto">
+                    {getLanguage(file.data)}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </CommandDialog>
       
       <style dangerouslySetInnerHTML={{ __html: `
         .rct-tree-item-list {

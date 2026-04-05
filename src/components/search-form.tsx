@@ -11,10 +11,12 @@ import {
 export function SearchForm({ 
   value, 
   onQueryChange, 
+  placeholder = "Search...",
   ...props 
 }: React.ComponentProps<"form"> & { 
   value?: string; 
-  onQueryChange?: (value: string) => void 
+  onQueryChange?: (value: string) => void;
+  placeholder?: string;
 }) {
   return (
     <form {...props} onSubmit={(e) => e.preventDefault()}>
@@ -26,7 +28,7 @@ export function SearchForm({
           <SidebarInput
             className="pl-8"
             id="search"
-            placeholder="Search the docs..."
+            placeholder={placeholder}
             value={value}
             onChange={(e) => onQueryChange?.(e.target.value)}
           />

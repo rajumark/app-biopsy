@@ -34,6 +34,7 @@
     "@tanstack/react-router-devtools": "^1.166.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "electron-squirrel-startup": "^1.0.1",
     "i18next": "^25.10.5",
     "lucide-react": "^0.577.0",
