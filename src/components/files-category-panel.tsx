@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { UncontrolledTreeEnvironment, Tree, StaticTreeDataProvider } from "react-complex-tree";
+import { UncontrolledTreeEnvironment, Tree, StaticTreeDataProvider, TreeViewState } from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
 import { ipc } from "@/ipc/manager";
 import { ProjectInfo } from "./project-list-dialog";
@@ -28,6 +28,24 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [viewState, setViewState] = useState<TreeViewState>({
+    ['tree-1']: {
+      expandedItems: [],
+      selectedItems: [],
+    }
+  });
+
+  // Pre-calculate parent map for fast lineage lookup
+  const parentMap = useMemo(() => {
+    if (!treeData) return new Map<string, string>();
+    const map = new Map<string, string>();
+    Object.keys(treeData).forEach((parentId) => {
+      treeData[parentId].children?.forEach((childId) => {
+        map.set(childId, parentId);
+      });
+    });
+    return map;
+  }, [treeData]);
   
   // Editor state
   const [selectedFile, setSelectedFile] = useState<TreeItem | null>(null);
@@ -60,6 +78,7 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
       setTreeData(null);
       setSelectedFile(null);
       setFileContent("");
+      setViewState({});
     }
   }, [activeProject]);
 
@@ -83,10 +102,37 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
 
   const handleFileSelect = async (item: TreeItem) => {
     if (item.isFolder) return;
-    if (selectedFile?.path === item.path) return;
     
-    setReadingFile(true);
+    // 1. Mark as selected in our local state for breadcrumbs
     setSelectedFile(item);
+    
+    // 2. Synchronize Tree View State
+    const lineAge: string[] = [];
+    let current = item.index;
+    while (parentMap.has(current)) {
+      const pId = parentMap.get(current)!;
+      lineAge.push(pId);
+      current = pId;
+    }
+
+    setViewState(prev => {
+      const treeState = prev['tree-1'] || {};
+      const newExpanded = Array.from(new Set([...(treeState.expandedItems || []), ...lineAge]));
+      return {
+        ...prev,
+        ['tree-1']: {
+          ...treeState,
+          expandedItems: newExpanded,
+          selectedItems: [item.index],
+          focusedItem: item.index,
+        }
+      };
+    });
+
+    // 3. Read content
+    if (selectedFile?.path === item.path && fileContent) return;
+
+    setReadingFile(true);
     try {
       const res = await ipc.client.project.readFileContent({ path: item.path });
       if (res.success) {
@@ -178,7 +224,14 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
               <UncontrolledTreeEnvironment
                 dataProvider={dataProvider}
                 getItemTitle={(item) => item.data}
-                viewState={{}}
+                viewState={viewState}
+                onViewStateChange={(newState) => setViewState(newState)}
+                onSelectItems={(items) => {
+                  const itemIndex = items[0];
+                  if (itemIndex && treeData && treeData[itemIndex] && !treeData[itemIndex].isFolder) {
+                    handleFileSelect(treeData[itemIndex]);
+                  }
+                }}
                 renderItemTitle={({ title }) => <span className="truncate">{title}</span>}
                 renderItemArrow={({ item, context }) => {
                   if (!item.isFolder) return <div className="w-4 mr-0.5" />;
@@ -202,10 +255,9 @@ export function FilesCategoryPanel({ activeProject }: { activeProject: ProjectIn
                     <div 
                        {...(context as any).interactiveElementProps}
                        className={`flex items-center gap-1.5 py-1 px-2 rounded-md cursor-pointer transition-colors group ${
-                         context.isSelected || selectedFile?.path === (item as any).path ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-foreground/80'
+                         context.isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-foreground/80'
                        }`}
                        style={{ paddingLeft: `${depth * 12 + 4}px` }}
-                       onClick={() => handleFileSelect(item as any)}
                     >
                       {arrow}
                       {item.isFolder ? 
