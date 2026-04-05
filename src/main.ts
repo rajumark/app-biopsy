@@ -10,6 +10,11 @@ import { ipcContext } from "@/ipc/context";
 import { IPC_CHANNELS, inDevelopment } from "./constants";
 import { getBasePath } from "./utils/path";
 import { initializeAppDirectories } from "./utils/app-data";
+import {
+  getToolsInfo,
+  downloadAndExtractJadx,
+  downloadAndExtractJre,
+} from "./utils/tools-manager";
 
 function createWindow() {
   const basePath = getBasePath();
@@ -69,15 +74,61 @@ async function setupORPC() {
   });
 }
 
+/**
+ * Silently ensures JADX and JRE are downloaded in the background.
+ * Only downloads tools that are not already installed (status !== 1).
+ * Does NOT block the UI — runs fully in the background.
+ */
+function bootstrapTools(): void {
+  const info = getToolsInfo();
+
+  if (info.jadx_status !== 1) {
+    console.log("[bootstrapTools] JADX not found — starting silent download...");
+    downloadAndExtractJadx()
+      .then((result) => {
+        if (result.success) {
+          console.log("[bootstrapTools] JADX downloaded and ready.");
+        } else {
+          console.error("[bootstrapTools] JADX download failed:", result.error);
+        }
+      })
+      .catch((err) => {
+        console.error("[bootstrapTools] JADX download error:", err);
+      });
+  } else {
+    console.log("[bootstrapTools] JADX already installed, skipping.");
+  }
+
+  if (info.jre_status !== 1) {
+    console.log("[bootstrapTools] JRE not found — starting silent download...");
+    downloadAndExtractJre()
+      .then((result) => {
+        if (result.success) {
+          console.log("[bootstrapTools] JRE downloaded and ready.");
+        } else {
+          console.error("[bootstrapTools] JRE download failed:", result.error);
+        }
+      })
+      .catch((err) => {
+        console.error("[bootstrapTools] JRE download error:", err);
+      });
+  } else {
+    console.log("[bootstrapTools] JRE already installed, skipping.");
+  }
+}
+
 app.whenReady().then(async () => {
   try {
     // Initialize app directories first
     initializeAppDirectories();
-    
+
     createWindow();
     await installExtensions();
     checkForUpdates();
     await setupORPC();
+
+    // Silently download JADX + JRE in the background if not already present
+    bootstrapTools();
   } catch (error) {
     console.error("Error during app initialization:", error);
   }
