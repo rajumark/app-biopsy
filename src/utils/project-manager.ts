@@ -162,3 +162,62 @@ export function setDefaultProject(projectId: string): { success: boolean; error?
     return { success: false, error: errorMessage };
   }
 }
+
+export interface TreeItem {
+  index: string;
+  isFolder: boolean;
+  children: string[];
+  data: string;
+  path: string;
+}
+
+export function getFileTree(projectId: string): { success: boolean; tree?: Record<string, TreeItem>; error?: string } {
+  try {
+    const projectsPath = getProjectsPath();
+    const decompiledPath = path.join(projectsPath, projectId, "source_files", "decompiled");
+    
+    if (!existsSync(decompiledPath)) {
+      return { success: false, error: "Decompiled directory not found" };
+    }
+
+    const tree: Record<string, TreeItem> = {
+      root: { index: "root", isFolder: true, children: [], data: "decompiled", path: decompiledPath }
+    };
+
+    const walk = (currentPath: string, parentIndex: string) => {
+      const items = readdirSync(currentPath, { withFileTypes: true });
+      // Sort items: folders first, then alphabetical
+      items.sort((a, b) => {
+        if (a.isDirectory() && !b.isDirectory()) return -1;
+        if (!a.isDirectory() && b.isDirectory()) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      for (const item of items) {
+        const itemPath = path.join(currentPath, item.name);
+        const itemIndex = itemPath.replace(decompiledPath, "root");
+        
+        const isFolder = item.isDirectory();
+        tree[itemIndex] = {
+          index: itemIndex,
+          isFolder,
+          children: [],
+          data: item.name,
+          path: itemPath
+        };
+        tree[parentIndex].children.push(itemIndex);
+
+        if (isFolder) {
+          walk(itemPath, itemIndex);
+        }
+      }
+    };
+
+    walk(decompiledPath, "root");
+    return { success: true, tree };
+  } catch (error) {
+    console.error("Error getting file tree:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: errorMessage };
+  }
+}

@@ -12,3 +12,7 @@ export const deleteProjectInputSchema = z.object({
 export const setDefaultProjectInputSchema = z.object({
   projectId: z.string(),
 });
+
+export const fetchFileTreeInputSchema = z.object({
+  projectId: z.string(),
+});

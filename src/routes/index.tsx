@@ -6,6 +6,7 @@ import DefaultPage from "@/components/default-page"
 import { UploadDialog } from "@/components/upload-dialog"
 import { ProjectListDialog, ProjectInfo } from "@/components/project-list-dialog"
 import { DecompileManagerDialog } from "@/components/decompile-manager-dialog"
+import { FilesCategoryPanel } from "@/components/files-category-panel"
 import { Button } from "@/components/ui/button"
 import { ipc } from "@/ipc/manager"
 
@@ -150,11 +151,7 @@ function HomePage() {
       case "explore-files":
         return <ExploreFilesPanel activeProject={activeProject} />
       case "files-category":
-        return (
-          <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
-            <h1 className="text-2xl font-semibold">Files Category</h1>
-          </div>
-        )
+        return <FilesCategoryPanel activeProject={activeProject} />
       default:
         if (currentPage.title) {
           return <DefaultPage title={currentPage.title} />

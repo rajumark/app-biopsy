@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppSidebar } from "@/components/app-sidebar"
+import { useEffect, useState } from "react";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,15 +8,32 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { FilesCategoryPanel } from "@/components/files-category-panel";
+import { ipc } from "@/ipc/manager";
+import { ProjectInfo } from "@/components/project-list-dialog";
 
 function FilesCategoryPage() {
+  const [activeProject, setActiveProject] = useState<ProjectInfo | null>(null);
+
+  useEffect(() => {
+    const fetchDefault = async () => {
+      const projectId = await ipc.client.project.getDefaultProjectHandler();
+      if (projectId) {
+        const list = await ipc.client.project.getProjectList();
+        const found = list.find((p: any) => p.project_id === projectId);
+        if (found) setActiveProject(found as unknown as ProjectInfo);
+      }
+    };
+    fetchDefault();
+  }, []);
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -38,10 +56,8 @@ function FilesCategoryPage() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
-            <h1 className="text-2xl font-semibold">Files Category</h1>
-          </div>
+        <div className="flex flex-1 flex-col gap-4 p-4 max-w-4xl mx-auto w-full">
+          <FilesCategoryPanel activeProject={activeProject} />
         </div>
       </SidebarInset>
     </SidebarProvider>

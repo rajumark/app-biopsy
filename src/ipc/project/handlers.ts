@@ -1,7 +1,7 @@
 import { os } from "@orpc/server";
 import { dialog } from "electron";
-import { createProject, getProjects, deleteProject, getDefaultProject, setDefaultProject } from "@/utils/project-manager";
-import { createProjectInputSchema, deleteProjectInputSchema, setDefaultProjectInputSchema } from "./schemas";
+import { createProject, getProjects, deleteProject, getDefaultProject, setDefaultProject, getFileTree } from "@/utils/project-manager";
+import { createProjectInputSchema, deleteProjectInputSchema, setDefaultProjectInputSchema, fetchFileTreeInputSchema } from "./schemas";
 
 export const createNewProject = os
   .input(createProjectInputSchema)
@@ -50,3 +50,10 @@ export const selectApkFile = os.handler(async () => {
     filePath: result.filePaths[0],
   };
 });
+
+export const fetchFileTree = os
+  .input(fetchFileTreeInputSchema)
+  .handler(async ({ input }) => {
+    const { projectId } = input;
+    return getFileTree(projectId);
+  });
